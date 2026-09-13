@@ -287,6 +287,7 @@ const $=id=>document.getElementById(id);
 let currentEvent=null;
 let realtimeChannel=null;
 let refreshTimer=null;
+let lastLiveSnapshot="";
 
 function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function fmtDate(s){const d=new Date(s+"T00:00:00");return `${d.getMonth()+1}/${d.getDate()}（${"日一二三四五六"[d.getDay()]}）`}
@@ -331,14 +332,37 @@ function setupRealtime(){
     });
 }
 
+async function getLiveSnapshot(){
+  if(currentEvent){
+    const {data:e}=await db.from("events").select("*").eq("id",currentEvent.id).maybeSingle();
+    if(!e) return "__DELETED__";
+    const {data:r}=await db.from("registrations").select("*").eq("event_id",currentEvent.id).order("registered_at",{ascending:true});
+    return JSON.stringify({e,r});
+  }
+  if(!$('list').classList.contains('hidden')){
+    const {data:e}=await db.from("events").select("*").order("event_date",{ascending:true}).order("start_time",{ascending:true});
+    return JSON.stringify(e||[]);
+  }
+  return "";
+}
+
 function startAutoRefresh(){
   if(refreshTimer) clearInterval(refreshTimer);
   refreshTimer=setInterval(async ()=>{
     try{
+      const snap=await getLiveSnapshot();
+      if(!snap) return;
+      if(snap==="__DELETED__"){
+        currentEvent=null;
+        lastLiveSnapshot="";
+        showTab("list");
+        return;
+      }
+      if(snap===lastLiveSnapshot) return; // 沒有變化就不重繪，避免畫面一直閃動
+      lastLiveSnapshot=snap;
       if(currentEvent){
-        const {data:e}=await db.from("events").select("*").eq("id",currentEvent.id).maybeSingle();
-        if(!e){ currentEvent=null; showTab("list"); return; }
-        currentEvent=e;
+        const parsed=JSON.parse(snap);
+        currentEvent=parsed.e;
         await renderDetail();
       }else if(!$('list').classList.contains('hidden')){
         await loadEvents();
