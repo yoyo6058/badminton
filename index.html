@@ -308,7 +308,7 @@ function myRegKey(eventId){return `badminton_reg_${eventId}`}
 function myRegId(eventId){return localStorage.getItem(myRegKey(eventId))||""}
 function setMyRegId(eventId,id){localStorage.setItem(myRegKey(eventId),id)}
 function clearMyRegId(eventId){localStorage.removeItem(myRegKey(eventId))}
-const ADMIN_PASSWORD=T18";
+const ADMIN_PASSWORD="2418";
 function isAdmin(){return sessionStorage.getItem("badminton_admin")==="1"}
 function requireAdmin(){
   if(isAdmin()) return true;
