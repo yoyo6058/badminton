@@ -300,6 +300,24 @@ const SUPABASE_KEY="sb_publishable_Bx610qU2vq2qSKY1c_1K7g_ewIxt4eu";
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=id=>document.getElementById(id);
 let currentEvent=null;
+let realtimeChannel=null;
+
+function stopRealtime(){
+  if(realtimeChannel){db.removeChannel(realtimeChannel); realtimeChannel=null;}
+}
+
+function startRealtime(eventId){
+  stopRealtime();
+  realtimeChannel=db.channel(`badminton-live-${eventId}`)
+    .on('postgres_changes',{event:'*',schema:'public',table:'registrations',filter:`event_id=eq.${eventId}`},()=>{
+      if(currentEvent && currentEvent.id===eventId) renderDetail();
+    })
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'events',filter:`id=eq.${eventId}`},payload=>{
+      if(currentEvent && currentEvent.id===eventId){ currentEvent=payload.new; renderDetail(); }
+    })
+    .subscribe();
+}
+
 
 function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function fmtDate(s){const d=new Date(s+"T00:00:00");return `${d.getMonth()+1}/${d.getDate()}（${"日一二三四五六"[d.getDay()]}）`}
@@ -371,6 +389,7 @@ async function openEvent(id){
   const {data:e,error}=await db.from("events").select("*").eq("id",id).single();
   if(error){toast("找不到場次");return}
   currentEvent=e;
+  startRealtime(e.id);
   $("create").classList.add("hidden");
   $("list").classList.add("hidden");
   $("detail").classList.remove("hidden");
@@ -485,6 +504,7 @@ async function deleteEvent(){
   if(error){toast("刪除失敗："+error.message);return}
   toast("場次已刪除");
   currentEvent=null;
+  stopRealtime();
   showTab("list");
   loadEvents();
 }
