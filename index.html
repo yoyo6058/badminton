@@ -347,8 +347,28 @@ async function getLiveSnapshot(){
 }
 
 function startAutoRefresh(){
-  // 不使用定時輪詢，避免畫面每隔幾秒閃動。
-  // 報名與場次改動由 Supabase Realtime 即時推送。
+  if(refreshTimer) clearInterval(refreshTimer);
+  refreshTimer=setInterval(async ()=>{
+    try{
+      const snap=await getLiveSnapshot();
+      if(!snap) return;
+      if(snap==="__DELETED__"){
+        currentEvent=null;
+        lastLiveSnapshot="";
+        showTab("list");
+        return;
+      }
+      if(snap===lastLiveSnapshot) return; // 沒有變化就不重繪，避免畫面一直閃動
+      lastLiveSnapshot=snap;
+      if(currentEvent){
+        const parsed=JSON.parse(snap);
+        currentEvent=parsed.e;
+        await renderDetail();
+      }else if(!$('list').classList.contains('hidden')){
+        await loadEvents();
+      }
+    }catch(e){ console.warn("auto refresh",e); }
+  },3000);
 }
 
 function showTab(which){
@@ -604,6 +624,7 @@ function init(){
 }
 init();
 setupRealtime();
+startAutoRefresh();
 </script>
 </body>
 </html>
