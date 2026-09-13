@@ -216,21 +216,6 @@ button.action{font-size:18px}
 }
 
 </style>
-
-<style>
-/* 查看／報名區塊：淡粉色＋字體放大 */
-#listTab .card,
-#listTab .section,
-.listCard,
-.eventList {
-  background: #fff4f7 !important;
-}
-#listTab h2, #listTab h3 { font-size: 24px !important; }
-#listTab .title { font-size: 24px !important; }
-#listTab .muted, #listTab .info, #listTab .eventInfo { font-size: 19px !important; }
-#listTab .action, #listTab button { font-size: 19px !important; }
-</style>
-
 </head>
 <body>
 <div class="app">
@@ -302,23 +287,6 @@ const $=id=>document.getElementById(id);
 let currentEvent=null;
 let realtimeChannel=null;
 
-function stopRealtime(){
-  if(realtimeChannel){db.removeChannel(realtimeChannel); realtimeChannel=null;}
-}
-
-function startRealtime(eventId){
-  stopRealtime();
-  realtimeChannel=db.channel(`badminton-live-${eventId}`)
-    .on('postgres_changes',{event:'*',schema:'public',table:'registrations',filter:`event_id=eq.${eventId}`},()=>{
-      if(currentEvent && currentEvent.id===eventId) renderDetail();
-    })
-    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'events',filter:`id=eq.${eventId}`},payload=>{
-      if(currentEvent && currentEvent.id===eventId){ currentEvent=payload.new; renderDetail(); }
-    })
-    .subscribe();
-}
-
-
 function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function fmtDate(s){const d=new Date(s+"T00:00:00");return `${d.getMonth()+1}/${d.getDate()}（${"日一二三四五六"[d.getDay()]}）`}
 function nameSaved(){return localStorage.getItem("badminton_name")||""}
@@ -336,6 +304,29 @@ function requireAdmin(){
   return false;
 }
 function toast(msg){alert(msg)}
+
+function setupRealtime(){
+  if(realtimeChannel){ db.removeChannel(realtimeChannel); realtimeChannel=null; }
+  realtimeChannel=db.channel("badminton-live")
+    .on("postgres_changes", {event:"*", schema:"public", table:"events"}, async (payload)=>{
+      if(currentEvent && payload.eventType==="DELETE" && payload.old?.id===currentEvent.id){
+        currentEvent=null;
+        showTab("list");
+        return;
+      }
+      if(currentEvent && payload.new?.id===currentEvent.id){
+        const {data:e}=await db.from("events").select("*").eq("id",currentEvent.id).maybeSingle();
+        if(e){ currentEvent=e; renderDetail(); }
+      }
+      if(!$('list').classList.contains('hidden')) loadEvents();
+    })
+    .on("postgres_changes", {event:"*", schema:"public", table:"registrations"}, async (payload)=>{
+      const eventId=payload.new?.event_id || payload.old?.event_id;
+      if(currentEvent && eventId===currentEvent.id) renderDetail();
+      if(!$('list').classList.contains('hidden')) loadEvents();
+    })
+    .subscribe();
+}
 
 function showTab(which){
   $("create").classList.toggle("hidden",which!=="create");
@@ -389,7 +380,6 @@ async function openEvent(id){
   const {data:e,error}=await db.from("events").select("*").eq("id",id).single();
   if(error){toast("找不到場次");return}
   currentEvent=e;
-  startRealtime(e.id);
   $("create").classList.add("hidden");
   $("list").classList.add("hidden");
   $("detail").classList.remove("hidden");
@@ -504,7 +494,6 @@ async function deleteEvent(){
   if(error){toast("刪除失敗："+error.message);return}
   toast("場次已刪除");
   currentEvent=null;
-  stopRealtime();
   showTab("list");
   loadEvents();
 }
@@ -591,6 +580,7 @@ function init(){
   if(id) openEvent(id); else showTab("list");
 }
 init();
+setupRealtime();
 </script>
 </body>
 </html>
