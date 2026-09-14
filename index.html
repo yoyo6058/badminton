@@ -215,9 +215,26 @@ button.action{font-size:18px}
   padding:9px 8px !important;
 }
 
+
+.passwordModal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:20px;z-index:9999}.passwordModal.hidden{display:none}.passwordBox{width:min(360px,100%);background:#fff;border-radius:18px;padding:22px;box-shadow:0 12px 40px rgba(0,0,0,.2)}.passwordBox h3{margin:0 0 12px;font-size:20px}.passwordBox input{width:100%;box-sizing:border-box;margin:8px 0 12px;padding:13px;border:1px solid #ccd7df;border-radius:10px;font-size:18px}.passwordActions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.passwordActions button{border:0;border-radius:10px;padding:12px;font-size:16px;font-weight:800;cursor:pointer}.passwordCancel{background:#f1f4f6}.passwordOk{background:#16bf7b;color:#fff}
+</style>
+<style>
+.joinRow{display:flex;gap:8px;margin-top:10px}.joinRow .join,.joinRow .friendJoin{width:auto;flex:1;margin-top:0}.friendJoin{border:0;border-radius:14px;padding:15px 10px;background:#fff0f7;color:#b44f78;font-size:16px;font-weight:900;cursor:pointer}.miniBtn{font-size:12px !important;padding:4px 6px !important;margin-left:3px !important}.regAdminOnly{font-size:15px !important;padding:9px !important}.adminRegMode{font-size:12px}
 </style>
 </head>
 <body>
+<div id="passwordModal" class="passwordModal hidden" onclick="if(event.target===this)closePasswordModal()">
+  <div class="passwordBox">
+    <h3>🔐 團主密碼</h3>
+    <div class="muted">請輸入管理密碼</div>
+    <input id="adminPasswordInput" type="password" inputmode="numeric" autocomplete="off" placeholder="請輸入密碼" onkeydown="if(event.key==='Enter')submitPassword()">
+    <div class="passwordActions">
+      <button class="passwordCancel" onclick="closePasswordModal()">取消</button>
+      <button class="passwordOk" onclick="submitPassword()">確認</button>
+    </div>
+  </div>
+</div>
+
 <div class="app">
 <header><div class="brand">🏸 一起來打羽球</div><div class="sub">煩惱 Out，羽球 In！</div></header>
 <nav>
@@ -298,49 +315,48 @@ function setMyRegId(eventId,id){localStorage.setItem(myRegKey(eventId),id)}
 function clearMyRegId(eventId){localStorage.removeItem(myRegKey(eventId))}
 const ADMIN_PASSWORD="2418";
 function isAdmin(){return sessionStorage.getItem("badminton_admin")==="1"}
+function isRegAdmin(){return sessionStorage.getItem("badminton_reg_admin")==="1"}
 function requireAdmin(){
   if(isAdmin()) return true;
-  const p=prompt("團主管理功能\n請輸入管理密碼：");
-  if(p===ADMIN_PASSWORD){sessionStorage.setItem("badminton_admin","1");return true}
-  if(p!==null) toast("密碼錯誤，無法使用團主管理功能");
+  openPasswordModal();
   return false;
 }
+function openPasswordModal(onSuccess){
+  const modal=$("passwordModal");
+  modal.classList.remove("hidden");
+  $("adminPasswordInput").value="";
+  modal._onSuccess=onSuccess||null;
+  setTimeout(()=>$("adminPasswordInput").focus(),50);
+}
+function closePasswordModal(){$("passwordModal").classList.add("hidden");}
+function submitPassword(){
+  const p=$("adminPasswordInput").value;
+  if(p===ADMIN_PASSWORD){
+    sessionStorage.setItem("badminton_admin","1");
+    const cb=$("passwordModal")._onSuccess;
+    closePasswordModal();
+    if(cb) cb(); else renderDetail();
+  }else{toast("密碼錯誤");$("adminPasswordInput").select();}
+}
 function toast(msg){alert(msg)}
-
-function setupRealtime(){
-  if(realtimeChannel){ db.removeChannel(realtimeChannel); realtimeChannel=null; }
-  realtimeChannel=db.channel("badminton-live")
-    .on("postgres_changes", {event:"*", schema:"public", table:"events"}, async (payload)=>{
-      if(currentEvent && payload.eventType==="DELETE" && payload.old?.id===currentEvent.id){
-        currentEvent=null;
-        showTab("list");
-        return;
-      }
-      if(currentEvent && payload.new?.id===currentEvent.id){
-        const {data:e}=await db.from("events").select("*").eq("id",currentEvent.id).maybeSingle();
-        if(e){ currentEvent=e; renderDetail(); }
-      }
-      if(!$('list').classList.contains('hidden')) loadEvents();
-    })
-    .on("postgres_changes", {event:"*", schema:"public", table:"registrations"}, async (payload)=>{
-      const eventId=payload.new?.event_id || payload.old?.event_id;
-      if(currentEvent && eventId===currentEvent.id) renderDetail();
-      if(!$('list').classList.contains('hidden')) loadEvents();
-    })
-    .subscribe((status)=>{
-      console.log("Realtime:",status);
-    });
+function enableRegAdmin(){
+  openPasswordModal(()=>{
+    sessionStorage.setItem("badminton_reg_admin","1");
+    renderDetail();
+    toast("已開啟團主報名管理");
+  });
 }
 
+function setupRealtime(){ /* 使用安全 RPC + 輪詢同步，不直接訂閱公開資料表 */ }
 async function getLiveSnapshot(){
   if(currentEvent){
-    const {data:e}=await db.from("events").select("*").eq("id",currentEvent.id).maybeSingle();
+    const {data:e}=await db.rpc("get_event", {p_event_id: currentEvent.id}).then(x=>({data:Array.isArray(x.data)?(x.data[0]||null):x.data,error:x.error}));
     if(!e) return "__DELETED__";
-    const {data:r}=await db.from("registrations").select("*").eq("event_id",currentEvent.id).order("registered_at",{ascending:true});
+    const {data:r}=await db.rpc("get_registrations", {p_event_id: currentEvent.id});
     return JSON.stringify({e,r});
   }
   if(!$('list').classList.contains('hidden')){
-    const {data:e}=await db.from("events").select("*").order("event_date",{ascending:true}).order("start_time",{ascending:true});
+    const {data:e}=await db.rpc("get_events");
     return JSON.stringify(e||[]);
   }
   return "";
@@ -385,12 +401,12 @@ async function loadEvents(){
   $("create").classList.add("hidden");
   $("detail").classList.add("hidden");
   $("list").innerHTML='<div class="card empty">載入場次中…</div>';
-  const {data,error}=await db.from("events").select("*").order("event_date",{ascending:true}).order("start_time",{ascending:true});
+  const {data,error}=await db.rpc("get_events");
   if(error){$("list").innerHTML='<div class="card empty">讀取失敗：請確認 Supabase 資料表設定。</div>';return}
   if(!data.length){$("list").innerHTML='<div class="card empty">目前還沒有場次</div>';return}
   const cards=[];
   for(const e of data){
-    const {data:r}=await db.from("registrations").select("id,status").eq("event_id",e.id);
+    const {data:r}=await db.rpc("get_registrations", {p_event_id: e.id});
     const confirmed=(r||[]).filter(x=>x.status==="confirmed").length;
     cards.push(`<div class="event">
       <div class="date">${fmtDate(e.event_date)}　${String(e.start_time).slice(0,5)}–${String(e.end_time).slice(0,5)}</div>
@@ -413,14 +429,16 @@ async function createEvent(){
     participant_limit:Number($("limit").value)||20,notes:$("note").value.trim()
   };
   $("createBtn").disabled=true;
-  const {data,error}=await db.from("events").insert(payload).select().single();
+  const {error}=await db.from("events").insert(payload);
   $("createBtn").disabled=false;
   if(error){toast("建立失敗："+error.message);return}
-  openEvent(data.id);
+  const {data:list}=await db.rpc("get_events");
+  const created=(list||[]).filter(e=>e.title===payload.title&&e.event_date===payload.event_date&&String(e.start_time).slice(0,5)===payload.start_time).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))[0];
+  if(created) openEvent(created.id); else showTab("list");
 }
 
 async function openEvent(id){
-  const {data:e,error}=await db.from("events").select("*").eq("id",id).single();
+  const {data:e,error}=await db.rpc("get_event", {p_event_id: id}).then(x=>({data:Array.isArray(x.data)?(x.data[0]||null):x.data,error:x.error}));
   if(error){toast("找不到場次");return}
   currentEvent=e;
   $("create").classList.add("hidden");
@@ -437,7 +455,8 @@ async function renderDetail(){
   const wait=(regs||[]).filter(r=>r.status==="waitlist");
   const me=nameSaved();
   const mineId=myRegId(e.id);
-  const my=(regs||[]).find(r=>r.id===mineId) || ((regs||[]).find(r=>r.name===me) || null);
+  // 團主「小佩」可跨裝置辨認：只要在該裝置確認一次團主身分，就會以姓名找回自己的報名。
+  const my=(regs||[]).find(r=>r.id===mineId) || ((me && (regs||[]).find(r=>r.name===me)) || null);
 
   $("detail").innerHTML=`
     <div class="card">
@@ -456,22 +475,23 @@ async function renderDetail(){
       <div style="margin-top:15px"><span class="count"><b>${confirmed.length}</b> / ${e.participant_limit} 人</span></div>
       ${my?`<div class="note">你目前${my.status==="confirmed"?"已報名":"在候補名單"}。</div>
       <button class="cancel" onclick="cancelReg('${my.id}')">取消我的報名</button>`
-      :`<button class="join" onclick="join()">＋1 報名</button>`}
-      
+      :`<div class="joinRow"><button class="join" onclick="join()">＋1 報名</button><button class="friendJoin" onclick="joinForOther()">👥 幫朋友報名</button></div>
+      <button class="action" style="margin-top:8px" onclick="recognizeOrganizer()">我是團主小佩</button>`}
+      ${my?`<div class="joinRow"><button class="friendJoin" onclick="joinForOther()">👥 幫朋友報名</button></div>`:""}
+      <button class="action regAdminOnly" style="margin-top:10px;background:#fff5d9;color:#856b1f" onclick="enableRegAdmin()">✏️ 修改｜團主專用</button>
       <div class="adminBlock">
         <div class="adminHead">🔐 團主管理 <span class="lockBadge">需密碼</span></div>
         <div class="adminRow">
-          <button class="adminBtn" onclick="if(requireAdmin())showEditForm()">✏️ 編輯場次</button>
-          <button class="adminBtn" onclick="if(requireAdmin())joinForOther()">👤 幫別人報名</button>
+          <button class="adminBtn" onclick="if(isAdmin())showEditForm();else openPasswordModal(()=>showEditForm())">✏️ 編輯場次</button>
+          <button class="adminBtn" style="color:#b44" onclick="if(isAdmin())deleteEvent();else openPasswordModal(()=>deleteEvent())">🗑️ 刪除場次</button>
         </div>
-        <button class="adminBtn" style="width:100%;margin-top:8px;color:#b44" onclick="if(requireAdmin())deleteEvent()">🗑️ 刪除場次</button>
       </div>
     </div>
     <div id="editArea" class="card hidden"></div>
     <div class="card">
       <h3 style="margin-top:0">已報名 ${confirmed.length} 人</h3>
-      ${confirmed.length?`<ol class="names">${confirmed.map((r,i)=>`<li>${esc(r.name)} ${isAdmin()?`<button class="miniBtn" onclick="editReg('${r.id}')">📝 修改</button><button class="miniBtn dangerMini" onclick="adminDeleteReg('${r.id}')">🗑️ 刪除</button>`:r.id===mineId?`<button class="miniBtn" onclick="editMyReg('${r.id}')">📝 修改</button><button class="miniBtn dangerMini" onclick="cancelReg('${r.id}')">🗑️ 取消</button>`:""}</li>`).join("")}</ol>`:`<div class="empty">目前還沒有人報名</div>`}
-      ${wait.length?`<div class="wait" style="font-size:18px;line-height:2.1">候補 ${wait.length} 人<br>${wait.map((r,i)=>`${i+1}. ${esc(r.name)} ${isAdmin()?`<button class="miniBtn" onclick="editReg('${r.id}')">📝 修改</button><button class="miniBtn dangerMini" onclick="adminDeleteReg('${r.id}')">🗑️ 刪除</button>`:r.id===mineId?`<button class="miniBtn" onclick="editMyReg('${r.id}')">📝 修改</button><button class="miniBtn dangerMini" onclick="cancelReg('${r.id}')">🗑️ 取消</button>`:""}`).join("<br>")}</div>`:""}
+      ${confirmed.length?`<ol class="names">${confirmed.map((r,i)=>`<li>${esc(r.name)} ${isRegAdmin()?`<button class="miniBtn" onclick="editReg('${r.id}')">📝 修改</button><button class="miniBtn dangerMini" onclick="adminDeleteReg('${r.id}')">🗑️ 刪除</button>`:r.id===mineId?`<button class="miniBtn" onclick="editMyReg('${r.id}')">📝 修改</button><button class="miniBtn dangerMini" onclick="cancelReg('${r.id}')">🗑️ 取消</button>`:""}</li>`).join("")}</ol>`:`<div class="empty">目前還沒有人報名</div>`}
+      ${wait.length?`<div class="wait" style="font-size:18px;line-height:2.1">候補 ${wait.length} 人<br>${wait.map((r,i)=>`${i+1}. ${esc(r.name)} ${isRegAdmin()?`<button class="miniBtn" onclick="editReg('${r.id}')">📝 修改</button><button class="miniBtn dangerMini" onclick="adminDeleteReg('${r.id}')">🗑️ 刪除</button>`:r.id===mineId?`<button class="miniBtn" onclick="editMyReg('${r.id}')">📝 修改</button><button class="miniBtn dangerMini" onclick="cancelReg('${r.id}')">🗑️ 取消</button>`:""}`).join("<br>")}</div>`:""}
     </div>`;
 }
 
@@ -506,21 +526,21 @@ async function saveEdit(){
     venue:$("editVenue").value.trim(),courts:Number($("editCourts").value)||1,
     participant_limit:Number($("editLimit").value)||20,notes:$("editNote").value.trim()
   };
-  const {data,error}=await db.from("events").update(payload).eq("id",currentEvent.id).select().single();
+  const {error}=await db.from("events").update(payload).eq("id",currentEvent.id);
   if(error){toast("修改失敗："+error.message);return}
-  currentEvent=data;
+  const {data:updated}=await db.rpc("get_event", {p_event_id: currentEvent.id});
+  currentEvent=Array.isArray(updated)?(updated[0]||null):updated;
   toast("場次已修改");
   renderDetail();
 }
 
 async function joinForOther(){
-  if(!requireAdmin())return;
   let name=prompt("請輸入要幫忙報名的球友姓名");
   if(!name||!name.trim())return;
   name=name.trim();
-  const {data:old}=await db.from("registrations").select("*").eq("event_id",currentEvent.id).eq("name",name).maybeSingle();
+  const {data:old}=await db.rpc("get_registrations", {p_event_id: currentEvent.id}).then(x=>({data:(x.data||[]).find(r=>r.name===name)||null,error:x.error}));
   if(old){toast(`${name} 已經報名過了`);return}
-  const {data:all}=await db.from("registrations").select("status").eq("event_id",currentEvent.id);
+  const {data:all}=await db.rpc("get_registrations", {p_event_id: currentEvent.id});
   const confirmed=(all||[]).filter(r=>r.status==="confirmed").length;
   const status=confirmed<currentEvent.participant_limit?"confirmed":"waitlist";
   const {error}=await db.from("registrations").insert({event_id:currentEvent.id,name,status});
@@ -541,6 +561,17 @@ async function deleteEvent(){
   loadEvents();
 }
 
+
+async function recognizeOrganizer(){
+  openPasswordModal(async ()=>{
+    localStorage.setItem("badminton_name","小佩");
+    const {data:regs}=await db.rpc("get_registrations", {p_event_id: currentEvent.id});
+    const my=(regs||[]).find(r=>r.name==="小佩");
+    if(my) setMyRegId(currentEvent.id,my.id);
+    renderDetail();
+  });
+}
+
 async function join(){
   let name=nameSaved();
   if(!name) name=prompt("第一次報名，請輸入你的姓名");
@@ -548,16 +579,18 @@ async function join(){
   name=name.trim();
   localStorage.setItem("badminton_name",name);
 
-  const {data:old}=await db.from("registrations").select("*").eq("event_id",currentEvent.id).eq("name",name).maybeSingle();
+  const {data:old}=await db.rpc("get_registrations", {p_event_id: currentEvent.id}).then(x=>({data:(x.data||[]).find(r=>r.name===name)||null,error:x.error}));
   if(old){toast("你已經報名過了");return}
 
-  const {data:all}=await db.from("registrations").select("status").eq("event_id",currentEvent.id);
+  const {data:all}=await db.rpc("get_registrations", {p_event_id: currentEvent.id});
   const confirmed=(all||[]).filter(r=>r.status==="confirmed").length;
   const status=confirmed<currentEvent.participant_limit?"confirmed":"waitlist";
 
-  const {data:newReg,error}=await db.from("registrations").insert({event_id:currentEvent.id,name,status}).select("id").single();
+  const {error}=await db.from("registrations").insert({event_id:currentEvent.id,name,status});
   if(error){toast("報名失敗："+error.message);return}
-  setMyRegId(currentEvent.id,newReg.id);
+  const {data:afterRegs}=await db.rpc("get_registrations", {p_event_id: currentEvent.id});
+  const newReg=(afterRegs||[]).filter(r=>r.name===name).sort((a,b)=>new Date(b.registered_at)-new Date(a.registered_at))[0];
+  if(newReg) setMyRegId(currentEvent.id,newReg.id);
   toast(status==="confirmed"?"報名成功！":"已額滿，已加入候補");
   renderDetail();
 }
@@ -569,15 +602,15 @@ async function editMyReg(id){
 }
 
 async function editReg(id,admin=true){
-  if(admin && !requireAdmin())return;
-  const {data:reg,error}=await db.from("registrations").select("*").eq("id",id).single();
+  if(admin && !isRegAdmin() && !requireAdmin())return;
+  const {data:reg,error}=await db.rpc("get_registrations", {p_event_id: currentEvent.id}).then(x=>({data:(x.data||[]).find(r=>r.id===id)||null,error:x.error}));
   if(error||!reg){toast("找不到這筆報名");return}
   let name=prompt("請輸入新的姓名：",reg.name);
   if(name===null)return;
   name=name.trim();
   if(!name){toast("姓名不能空白");return}
   if(name===reg.name)return;
-  const {data:dup}=await db.from("registrations").select("id").eq("event_id",currentEvent.id).eq("name",name).neq("id",id).maybeSingle();
+  const {data:dup}=await db.rpc("get_registrations", {p_event_id: currentEvent.id}).then(x=>({data:(x.data||[]).find(r=>r.name===name&&r.id!==id)||null,error:x.error}));
   if(dup){toast(`${name} 已經報名過了`);return}
   const {error:upErr}=await db.from("registrations").update({name}).eq("id",id);
   if(upErr){toast("修改失敗："+upErr.message);return}
@@ -587,7 +620,7 @@ async function editReg(id,admin=true){
 }
 
 async function adminDeleteReg(id){
-  if(!requireAdmin())return;
+  if(!isRegAdmin() && !requireAdmin())return;
   if(!confirm("確定要刪除這筆報名嗎？"))return;
   await cancelReg(id,true);
 }
@@ -600,7 +633,7 @@ async function cancelReg(id,fromAdmin=false){
   if(id===myRegId(currentEvent.id)) clearMyRegId(currentEvent.id);
 
   // 取消正取後，依報名順序把第一位候補遞補成正取。
-  const {data:wait}=await db.from("registrations").select("*").eq("event_id",currentEvent.id).eq("status","waitlist").order("registered_at",{ascending:true}).limit(1);
+  const {data:wait}=await db.rpc("get_registrations", {p_event_id: currentEvent.id}).then(x=>({data:(x.data||[]).filter(r=>r.status==="waitlist").sort((a,b)=>new Date(a.registered_at)-new Date(b.registered_at)).slice(0,1),error:x.error}));
   if(wait&&wait[0]) await db.from("registrations").update({status:"confirmed"}).eq("id",wait[0].id);
 
   toast("已取消報名");
