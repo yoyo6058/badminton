@@ -74,40 +74,44 @@ function updateKeyboardState(){
  const vv=window.visualViewport;
  const active=document.activeElement;
  const focused=!!(active&&active.matches&&active.matches('input,textarea,select'));
- const keyboardLikely=vv ? ((window.innerHeight-vv.height)>100) : focused;
+ if(vv){
+   const delta=window.innerHeight-vv.height;
+   // visualViewport is the source of truth once it reports a keyboard-sized shrink.
+   // When the viewport returns to normal height, show the buttons immediately,
+   // even if the input is still focused during the keyboard-close animation.
+   setKeyboardOpen(delta>100);
+ }else{
+   setKeyboardOpen(focused);
+ }
  formControlFocused=focused;
- // When visualViewport is available, use actual viewport shrinkage as the keyboard signal.
- // Do not keep the buttons hidden merely because the input remains focused after the keyboard closes.
- setKeyboardOpen(!!keyboardLikely);
 }
-function scheduleKeyboardSync(){
+function scheduleKeyboardSync(delay=0){
  clearTimeout(keyboardSyncTimer);
- updateKeyboardState();
- keyboardSyncTimer=setTimeout(()=>{
-   updateKeyboardState();
-   setTimeout(updateKeyboardState,120);
- },60);
+ keyboardSyncTimer=setTimeout(updateKeyboardState,delay);
 }
 if(window.visualViewport){
- window.visualViewport.addEventListener('resize',scheduleKeyboardSync);
- window.visualViewport.addEventListener('scroll',scheduleKeyboardSync);
+ window.visualViewport.addEventListener('resize',updateKeyboardState);
+ window.visualViewport.addEventListener('scroll',updateKeyboardState);
 }
 document.addEventListener('focusin',e=>{
  if(e.target.matches('input,textarea,select')){
    formControlFocused=true;
+   // Hide immediately when an input receives focus; wait for the viewport
+   // resize event to decide when the keyboard is actually open.
    setKeyboardOpen(true);
-   scheduleKeyboardSync();
+   scheduleKeyboardSync(350);
  }
 });
 document.addEventListener('focusout',()=>{
  formControlFocused=false;
- // Let visualViewport finish its keyboard-close transition, then immediately re-check.
- scheduleKeyboardSync();
- setTimeout(scheduleKeyboardSync,80);
- setTimeout(scheduleKeyboardSync,180);
- setTimeout(scheduleKeyboardSync,350);
+ // Re-check through the keyboard-close animation. As soon as the viewport
+ // returns to normal height, the fixed buttons are shown without a blank-area tap.
+ scheduleKeyboardSync(0);
+ setTimeout(updateKeyboardState,80);
+ setTimeout(updateKeyboardState,180);
+ setTimeout(updateKeyboardState,350);
 });
-window.addEventListener('resize',scheduleKeyboardSync);
+window.addEventListener('resize',updateKeyboardState);
 
 async function openCreate(){if(await requirePassword('建立場次：'))show('create')}
 document.addEventListener('click',async e=>{const summary=e.target.closest('.admin summary');if(!summary)return;e.preventDefault();if(await requirePassword('團主管理：'))summary.parentElement.open=!summary.parentElement.open});
