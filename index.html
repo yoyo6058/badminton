@@ -76,13 +76,17 @@ function updateKeyboardState(){
  const focused=!!(active&&active.matches&&active.matches('input,textarea,select'));
  const keyboardLikely=vv ? ((window.innerHeight-vv.height)>100) : focused;
  formControlFocused=focused;
- setKeyboardOpen(keyboardLikely||focused);
- if(!focused&&!keyboardLikely)setKeyboardOpen(false);
+ // When visualViewport is available, use actual viewport shrinkage as the keyboard signal.
+ // Do not keep the buttons hidden merely because the input remains focused after the keyboard closes.
+ setKeyboardOpen(!!keyboardLikely);
 }
 function scheduleKeyboardSync(){
  clearTimeout(keyboardSyncTimer);
  updateKeyboardState();
- keyboardSyncTimer=setTimeout(()=>{updateKeyboardState();setTimeout(updateKeyboardState,120)},60);
+ keyboardSyncTimer=setTimeout(()=>{
+   updateKeyboardState();
+   setTimeout(updateKeyboardState,120);
+ },60);
 }
 if(window.visualViewport){
  window.visualViewport.addEventListener('resize',scheduleKeyboardSync);
@@ -97,8 +101,10 @@ document.addEventListener('focusin',e=>{
 });
 document.addEventListener('focusout',()=>{
  formControlFocused=false;
- setKeyboardOpen(true);
- setTimeout(scheduleKeyboardSync,120);
+ // Let visualViewport finish its keyboard-close transition, then immediately re-check.
+ scheduleKeyboardSync();
+ setTimeout(scheduleKeyboardSync,80);
+ setTimeout(scheduleKeyboardSync,180);
  setTimeout(scheduleKeyboardSync,350);
 });
 window.addEventListener('resize',scheduleKeyboardSync);
