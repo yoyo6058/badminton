@@ -1,711 +1,146 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>🏸 一起來打羽球</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:linear-gradient(180deg,#e6f8ff,#f7fbff,#edfff6);font-family:Arial,"Noto Sans TC","Microsoft JhengHei",sans-serif;color:#25313a}
-.app{max-width:480px;margin:auto;min-height:100vh}
-header{background:linear-gradient(135deg,#22b8f2,#6575ee);color:#fff;padding:26px 20px 22px;border-radius:0 0 28px 28px}
-.brand{font-size:28px;font-weight:900}.sub{margin-top:5px;font-size:13px}
-nav{display:flex;gap:8px;padding:14px 16px}
-nav button{flex:1;border:0;border-radius:13px;padding:12px;background:#fff;color:#507080;font-weight:800}
-nav button.on{color:#1676a5;box-shadow:0 3px 12px #0001}
-main{padding:0 16px 40px}
-.card{background:#fffffff5;border-radius:20px;padding:19px;margin-bottom:14px;box-shadow:0 5px 20px #0000000b}
-h2{font-size:20px;margin:0 0 15px}
-label{display:block;font-size:13px;color:#68757d;margin:12px 0 6px}
-input,textarea{width:100%;border:1px solid #d8e1e6;border-radius:11px;padding:12px;font-size:16px;background:#fff}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-button.action{width:100%;border:0;border-radius:14px;padding:14px;margin-top:14px;font-size:16px;font-weight:900;cursor:pointer}
-.green{background:linear-gradient(135deg,#16bf7b,#13aaa8);color:#fff}
-.blue{background:#edf8ff;color:#2876a4}
-.yellow{background:#fff1b8;color:#816100}
-.hidden{display:none!important}
-.event{cursor:pointer}
-.date,.detailTitle,.detailTime{font-size:20px;color:#1676a5;font-weight:900;letter-spacing:.5px}.title{font-size:20px;font-weight:900;margin:6px 0 12px}.detailTitle{margin:10px 0 8px;color:#25313a}.detailTime{margin:0 0 14px}.note{margin-top:16px;padding:0;color:#a45a00;font-size:14px;font-weight:400;line-height:1.7;white-space:pre-wrap}.adminRow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.adminBtn{border:0;border-radius:12px;padding:13px 10px;background:#f0f4ff;color:#4963a6;font-size:16px;font-weight:900;cursor:pointer}.join,.cancel,.share{width:100%;border:0;border-radius:14px;padding:15px;margin-top:10px;font-size:18px;font-weight:900;cursor:pointer}.join{background:linear-gradient(135deg,#16bf7b,#13aaa8);color:#fff}.cancel{background:#edf8ff;color:#2876a4}.share{background:#f4f0ff;color:#6a50a5}.muted{color:#68757d;font-size:16px;margin-top:7px}.miniBtn{border:0;border-radius:9px;padding:6px 9px;margin-left:5px;background:#eef6ff;color:#2876a4;font-size:14px;cursor:pointer}.dangerMini{color:#b44;background:#fff0f0}.lockBadge{font-size:12px;color:#66727a;background:#f3f6f8;border-radius:999px;padding:5px 9px;margin-left:6px}
-.info{display:grid;grid-template-columns:1fr 1fr;gap:8px}.info div{background:#f0fbf7;padding:11px;border-radius:10px;font-size:16px}
-.count{margin-top:16px;font-size:18px}.count b{font-size:32px}.names{font-size:18px;line-height:2.1;padding-left:30px}.names li{padding-left:4px}
-.empty{text-align:center;color:#999;padding:25px}
-.person{padding:10px 0;border-bottom:1px solid #edf0f2}
-.back{color:#2876a4;background:#edf8ff}
-
-/* 手機閱讀字體加大：日期／時間維持原大小 */
-.sub{font-size:17px}
-nav button{font-size:17px;padding:14px 12px}
-h2{font-size:22px}
-h3{font-size:21px}
-label{font-size:16px}
-input,textarea{font-size:18px}
-button.action{font-size:18px}
-.title{font-size:22px}
-.muted{font-size:18px}
-.note{font-size:17px}
-.adminBtn{font-size:18px;padding:14px 10px}
-.lockBadge{font-size:14px}
-.info div{font-size:18px;padding:12px}
-.count{font-size:20px}
-.names{font-size:20px;line-height:2.15}
-.miniBtn{font-size:16px;padding:8px 10px}
-.empty{font-size:18px}
-.person{font-size:18px}
-
-
-/* 場次資訊分區：場次／日期／時間一區；地點／場地數一區 */
-.eventSummary{
-  background:#eef8ff;
-  border-radius:16px;
-  padding:16px 18px;
-  margin-top:12px;
-}
-.summaryTitle{
-  font-size:22px;
-  font-weight:900;
-  color:#25313a;
-  margin-bottom:8px;
-}
-.summaryDate{
-  font-size:20px;
-  font-weight:900;
-  color:#1676a5;
-  margin-bottom:4px;
-}
-.summaryTime{
-  font-size:20px;
-  font-weight:900;
-  color:#1676a5;
-}
-.venueSummary{
-  background:#effaf5;
-  border-radius:16px;
-  padding:15px 18px;
-  margin-top:10px;
-  color:#4f6068;
-  font-size:18px;
-  font-weight:800;
-}
-.summaryDivider{color:#9aa6ac;margin:0 6px}
-
-
-/* 最終視覺調整 */
-.backBtn{
-  background:#effaf5 !important;
-}
-.eventSummary{
-  background:#eef8ff;
-  border-radius:16px;
-  padding:16px 18px;
-  margin-top:12px;
-}
-.summaryTitle{
-  font-size:22px;
-  font-weight:900;
-  color:#2477a0;
-  margin-bottom:8px;
-}
-.summaryDate{
-  font-size:24px;
-  font-weight:900;
-  color:#1676a5;
-  margin-bottom:5px;
-}
-.summaryTime{
-  font-size:26px;
-  font-weight:900;
-  color:#1676a5;
-}
-.venueSummary{
-  background:#effaf5;
-  border-radius:16px;
-  padding:15px 18px;
-  margin-top:10px;
-  color:#4f6068;
-  font-size:18px;
-  font-weight:800;
-}
-.noteBlock{
-  background:#eef8ff;
-  border-radius:16px;
-  padding:14px 18px;
-  margin-top:10px;
-}
-.note{
-  background:transparent !important;
-  margin:0 !important;
-  padding:0 !important;
-  color:#a86520;
-  font-size:17px;
-  font-weight:400 !important;
-  line-height:1.7;
-}
-.adminBlock{
-  background:#fff8e8;
-  border-radius:18px;
-  padding:16px;
-  margin-top:14px;
-}
-.adminBlock .adminBtn{
-  font-size:18px;
-}
-
-
-/* 最終顏色調整 */
-.backBtn{
-  background:#fff8e8 !important;
-}
-.summaryTitle{
-  color:#d98282 !important;
-}
-.adminBlock{
-  background:#fff8e8 !important;
-}
-
-
-/* 使用者指定的最終配色 */
-.backToList{
-  background:#fff8e8 !important;
-  color:#8b6a24 !important;
-}
-.summaryTitle{
-  color:#d98282 !important;
-}
-.adminBlock{
-  background:#fff8e8 !important;
-  border-radius:18px;
-  padding:16px;
-  margin-top:14px;
-}
-.adminHead{
-  font-size:19px;
-  font-weight:900;
-  color:#5f5a4a;
-  margin-bottom:8px;
-}
-
-
-/* 最終微調：團主管理區縮小、日期時間不粗體 */
-.summaryDate{
-  font-size:24px !important;
-  font-weight:400 !important;
-}
-.summaryTime{
-  font-size:26px !important;
-  font-weight:400 !important;
-}
-.adminBlock{
-  padding:10px 12px !important;
-  margin-top:10px !important;
-  border-radius:14px !important;
-}
-.adminHead{
-  font-size:17px !important;
-  margin-bottom:6px !important;
-}
-.adminBlock .adminRow{
-  gap:6px !important;
-}
-.adminBlock .adminBtn{
-  font-size:16px !important;
-  padding:9px 8px !important;
-}
-.adminBlock > .adminBtn{
-  margin-top:6px !important;
-  padding:9px 8px !important;
-}
-
-</style>
-<style>
-.joinRow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.joinRow .join,.joinRow .friendJoin{margin-top:0}
-.friendJoin{width:100%;border:0;border-radius:14px;padding:15px;font-size:18px;font-weight:900;cursor:pointer;background:#fff0f6;color:#b24f78}
-.passwordModal{position:fixed;inset:0;background:#0006;display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}.passwordBox{width:min(360px,100%);background:#fff;border-radius:20px;padding:22px;box-shadow:0 12px 40px #0003}.passwordTitle{font-size:20px;font-weight:900;margin-bottom:14px}.passwordBox input{width:100%;border:1px solid #d8e1e6;border-radius:11px;padding:13px;font-size:18px}.passwordActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.passwordActions button{border:0;border-radius:12px;padding:12px;font-size:17px;font-weight:900;background:#edf8ff;color:#2876a4}.passwordActions button:first-child{background:#16bf7b;color:#fff}
-.miniBtn{font-size:12px !important;padding:4px 6px !important;margin-left:3px !important}
-</style>
-</head>
-<body>
-<div class="app">
-<header><div class="brand">🏸 一起來打羽球</div><div class="sub">煩惱 Out，羽球 In！</div></header>
-<nav>
-<button id="newBtn" class="on">＋ 建立場次</button>
-<button id="listBtn">📋 我的場次</button>
-</nav>
-
-<main>
-<section id="create">
-<div class="card">
-<h2>✨ 建立新場次</h2>
-<label>日期</label>
-<input id="date" type="date">
-
-<div class="grid">
-<div><label>開始時間</label><input id="start" type="time" value="19:00" step="60"></div>
-<div><label>結束時間</label><input id="end" type="time" value="21:00" step="60"></div>
-</div>
-
-<label>場次名稱</label>
-<input id="title" placeholder="例如：週三固定羽球">
-
-<label>球館</label>
-<input id="venue" placeholder="例如：暖西羽球館">
-
-<div class="grid">
-<div><label>場地數</label><input id="courts" type="number" min="1" value="3"></div>
-<div><label>人數上限</label><input id="limit" type="number" min="1" value="20"></div>
-</div>
-
-<label>備註（選填）</label>
-<textarea id="note" rows="3" placeholder="例如：請自備球拍"></textarea>
-
-<button id="createBtn" class="action green">建立場次</button>
-</div>
-</section>
-
-<section id="list" class="hidden">
-<div id="events"></div>
-</section>
-
-<section id="detail" class="hidden">
-<div class="card">
-<div id="detailDate" class="date"></div>
-<div id="detailTitle" class="title"></div>
-<div class="info"><div id="detailVenue"></div><div id="detailCourts"></div></div>
-<div id="detailCount" class="count"></div>
-<div id="detailNote"></div>
-<button id="joinBtn" class="action green">＋1 我要報名</button>
-<button id="cancelBtn" class="action blue">取消報名</button>
-</div>
-<div class="card">
-<h2>👥 報名名單</h2>
-<div id="people" class="empty">目前還沒有人報名</div>
-</div>
-<button id="backBtn" class="action back">← 回我的場次</button>
-</section>
-</main>
-</div>
-
-<div id="passwordModal" class="passwordModal hidden">
-<div class="passwordBox"><div class="passwordTitle">🔐 團主密碼</div>
-<input id="adminPasswordInput" type="password" inputmode="numeric" autocomplete="off" placeholder="請輸入密碼">
-<div class="passwordActions"><button onclick="submitPassword()">確認</button><button onclick="closePasswordModal()">取消</button></div></div></div>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>臨打報名系統</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--navy:#23456b;--blue:#eaf2f8;--line:#cbd9e6;--text:#243447;--muted:#718096;--green:#74c68f;--pink:#f3a6b5;--bg:#f7f9fb;--white:#fff;--shadow:0 5px 18px rgba(35,69,107,.08)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC",sans-serif;color:var(--text);background:var(--bg)}button,input,textarea,select{font:inherit}html{font-size:16px;-webkit-text-size-adjust:100%;text-size-adjust:100%;}button{border:0;cursor:pointer}.app{width:100%;max-width:620px;margin:0 auto;min-height:100dvh;padding-bottom:100px}.header{background:var(--navy);color:#fff;padding:18px 20px 17px;text-align:center}.header h1{display:inline-block;font-size:22px;margin:0;font-weight:700;letter-spacing:.08em;position:relative}.header h1 .header-icon{position:absolute;left:-44px;right:auto;top:50%;transform:translateY(-50%);width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:22px;line-height:1}.header p{max-width:430px;margin:4px auto 0;padding-right:20px;text-align:right;font-size:12px;opacity:.82}.page{padding:18px 16px}.screen{display:none}.screen.active{display:block}.section-title{font-size:18px;font-weight:700;margin:2px 2px 14px}.event-card,.info-card,.form-card,.roster-card,.success-card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}.event-card{padding:10px 17px;margin-bottom:12px}.event-top{display:flex;gap:14px;align-items:center}.date{width:78px;flex:none;text-align:center;color:var(--navy);font-weight:800;line-height:1.05}.date b{display:block;font-size:18px}.date span{font-size:11px}.event-main{min-width:0;flex:1}.event-title{font-size:16px;color:var(--navy);font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.event-time{font-size:15px;color:var(--muted);margin-top:4px}.event-actions{display:flex;gap:10px;margin-top:14px}.btn{min-height:46px;border-radius:12px;padding:0 16px;font-weight:700}.btn-primary{background:var(--navy);color:#fff;border:1px solid #183b57}.btn-soft{background:#fff;border:1px solid #cbdce8;color:var(--navy)}.btn-green{background:var(--green);color:#fff;border:1px solid #3f8e5f}.btn-pink{background:var(--pink);color:#fff;border:1px solid #dc9aa5}.event-actions .btn-soft,.action-grid .btn-soft{background:#f3f8fc;border:1px solid #cfe0ed;color:var(--navy)}.event-actions .btn-green{background:#effaf3;border:1px solid #c9e4d4;color:#4d9568}.action-grid .btn-green{background:#effaf3;border:1px solid #c9e4d4;color:#4d9568}.action-grid .btn-pink{background:#fff2f4;border:1px solid #efcfd5;color:#d7838f}.btn-full{width:100%}.event-actions .btn{flex:1;font-size:14px}.empty{text-align:center;padding:45px 15px;color:var(--muted)}.info-card{padding:18px;margin-bottom:14px}.signup-info-card{padding:11px 18px}.info-grid{display:grid;grid-template-columns:78px 1fr;gap:3px 16px;align-items:start}.info-date{text-align:center;color:var(--navy);font-weight:800;border-right:1px solid var(--line);padding-right:12px;grid-row:1/5;display:flex;flex-direction:column;justify-content:center;align-items:center}.info-date b{font-size:21px;display:block}.info-date span{font-size:13px}.info-title{font-size:17px;font-weight:750;color:var(--navy)}.info-line{font-size:15px;color:var(--muted);margin-top:3px}.count{text-align:center;font-size:15px;margin:13px 0;color:var(--muted)}.detail-count{margin:3px 0 7px}.count strong{font-size:28px;color:#d95362}.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.action-grid>*{min-width:0}.action-grid .btn{font-size:15px}.admin{margin-top:16px;border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}.admin summary{padding:13px 15px;color:var(--navy);font-weight:700;font-size:14px;cursor:pointer}.admin-body{padding:12px;border-top:1px solid var(--line);display:grid;gap:9px}.form-card{padding:18px}.field{margin-bottom:13px}.field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:var(--navy)}.field input,.field textarea,.field select{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px 12px;background:#fff;color:var(--text);outline:none}.field input:focus,.field textarea:focus{border-color:var(--navy)}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.bottom{position:fixed;z-index:10;left:50%;transform:translateX(-50%);bottom:max(12px,env(safe-area-inset-bottom));width:min(calc(100% - 32px),588px);display:flex;gap:10px}.keyboard-open .bottom{display:none!important}.bottom .btn{flex:1;box-shadow:0 4px 15px rgba(0,0,0,.08)}.person-icon{width:19px;height:19px;display:inline-block;vertical-align:-4px;margin-right:3px;stroke:currentColor;fill:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}.success-card{text-align:center;padding:28px 20px}.success-mark{width:58px;height:58px;border-radius:50%;background:#e7f5ed;color:var(--green);display:grid;place-items:center;margin:0 auto 12px;font-size:30px}.success-card h2{margin:0 0 8px;color:var(--navy)}.success-detail{font-size:15px;line-height:1.8;color:var(--muted)}.success-name{font-size:16px;color:var(--navy);font-weight:800}.record{background:#fff;border:1px solid var(--line);border-radius:15px;padding:15px;margin-bottom:10px}.record .rdate{color:var(--navy);font-weight:800}.record .rtitle{font-size:17px;margin-top:3px}.record .rtime{font-size:13px;color:var(--muted);margin-top:3px}.person{display:flex;align-items:center;gap:10px;padding:11px 3px;border-bottom:1px solid #edf2f6;min-width:0}.person:last-child{border-bottom:0}.person-name{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.person-actions{display:flex;align-items:center;gap:8px;flex:none}.badge{font-size:12px;color:var(--green);font-weight:700;white-space:nowrap}.badge-confirmed{background:#eaf7ef;color:#4d9568;padding:4px 9px;border-radius:999px}.trash-btn{width:38px;height:38px;min-width:38px;padding:0;border-radius:50%;background:#fdecef;color:#df4353;display:grid;place-items:center;border:1px solid #f4c4cb}.trash-btn svg{width:25px;height:25px;display:block}.trash-btn:active{background:#f9dfe4;transform:scale(.97)}.roster-card{padding:9px 18px}.roster-card .info-title{font-size:18px}.roster-action{width:100%;margin-top:10px}.modal{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.35)}.modal.show{display:flex}.modal-card{width:min(100%,360px);background:#fff;border-radius:18px;padding:22px 20px;box-shadow:0 12px 35px rgba(0,0,0,.18);text-align:center}.modal-title{font-size:17px;font-weight:700;color:var(--text);line-height:1.5;margin-bottom:18px;word-break:break-word}.modal-actions{display:flex;gap:10px}.modal-actions .btn{flex:1}.toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);background:#263746;color:#fff;padding:10px 15px;border-radius:10px;font-size:13px;display:none;z-index:30;max-width:calc(100% - 32px);text-align:center}.small{font-size:13px;color:var(--muted)}.name-tools{margin-top:10px;text-align:left}.name-tools button{background:transparent;color:var(--navy);font-size:14px;font-weight:700;text-decoration:underline;padding:6px 8px}.password-input{width:100%;box-sizing:border-box;letter-spacing:.25em;text-align:center;font-size:20px;font-weight:700;-webkit-text-security:disc;text-security:disc}@media(min-width:700px){.app{max-width:680px}.header{border-radius:0 0 18px 18px}.page{padding:22px 20px}}
+
+html.ios-device body{font-size:16px}
+html.ios-device .header h1{font-size:24px}
+html.ios-device .header p{font-size:14px}
+html.ios-device .section-title{font-size:20px}
+html.ios-device .event-title{font-size:18px}
+html.ios-device .event-time{font-size:17px}
+html.ios-device .date b{font-size:20px}
+html.ios-device .date span{font-size:13px}
+html.ios-device .event-actions .btn{font-size:16px}
+html.ios-device .info-title{font-size:19px}
+html.ios-device .info-line{font-size:16px}
+html.ios-device .info-date b{font-size:23px}
+html.ios-device .info-date span{font-size:15px}
+html.ios-device .count{font-size:17px}
+html.ios-device .action-grid .btn{font-size:17px}
+html.ios-device .admin summary{font-size:16px}
+html.ios-device .name-tools button{font-size:16px}
+html.ios-device .badge{font-size:14px}
+html.ios-device .person-name{font-size:17px}
+html.ios-device .small{font-size:15px}
+</style><script>if(/iPhone|iPad|iPod/i.test(navigator.userAgent)){document.documentElement.classList.add('ios-device')}</script></head>
+<body><main class="app">
+<header class="header"><h1><span class="header-icon" aria-hidden="true">🏸</span>打球・動起來～♡</h1><p>打球・運動・交朋友</p></header>
+<section id="list" class="screen active"><div class="page"><div class="section-title">近期場次</div><div id="eventList"></div></div><div class="bottom"><button class="btn btn-primary" onclick="openCreate()">＋ 建立場次</button></div></section>
+<section id="detail" class="screen"><div class="page"><div id="detailCard"></div></div><div class="bottom"><button class="btn btn-primary" onclick="show('list')">返回場次</button></div></section>
+<section id="signup" class="screen"><div class="page"><div id="signupCard"></div></div><div class="bottom"><button class="btn btn-primary" onclick="confirmSignup()">確認報名</button><button class="btn btn-soft" onclick="show('detail')">返回</button></div></section>
+<section id="success" class="screen"><div class="page"><div class="success-card"><div class="success-mark">✓</div><h2>報名成功</h2><div id="successDetail" class="success-detail"></div></div></div><div class="bottom"><button class="btn btn-primary" onclick="showRoster()">查看名單</button><button class="btn btn-soft" onclick="show('detail')">返回</button></div></section>
+<section id="roster" class="screen"><div class="page"><div id="rosterCard"></div></div><div class="bottom"><button class="btn btn-primary" onclick="show('list')">返回首頁</button></div></section>
+<section id="create" class="screen"><div class="page"><div class="section-title">建立新場次</div><div class="form-card"><div class="field"><label>活動名稱</label><input id="fTitle" placeholder="例如：In羽out"></div><div class="two"><div class="field"><label>日期</label><input id="fDate" type="date"></div><div class="field"><label>開始時間</label><input id="fStart" type="time"></div></div><div class="field"><label>結束時間</label><input id="fEnd" type="time"></div><div class="field"><label>球館</label><input id="fVenue" placeholder="例如：基隆運動中心"></div><div class="two"><div class="field"><label>場地數</label><input id="fCourts" type="number" min="1" value="3"></div><div class="field"><label>人數上限</label><input id="fLimit" type="number" min="1" value="20"></div></div><div class="field"><label>備註</label><textarea id="fNotes" rows="3" placeholder="可留空"></textarea></div></div></div><div class="bottom"><button id="createSubmit" type="button" class="btn btn-primary">建立場次</button><button class="btn btn-soft" onclick="show('list')">返回</button></div></section>
+<section id="records" class="screen"><div class="page"><div class="section-title">我的紀錄</div><div id="recordsList"></div></div><div class="bottom"><button class="btn btn-soft" onclick="show('list')">返回</button><button class="btn btn-primary" onclick="show('list')">首頁</button></div></section>
+<div id="toast" class="toast"></div><div id="passwordModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true"><div class="modal-card"><div id="passwordModalTitle" class="modal-title"></div><input id="passwordInput" class="field input password-input" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="new-password" aria-label="密碼"><div class="modal-actions" style="margin-top:16px"><button id="passwordConfirmBtn" class="btn btn-primary">確認</button><button id="passwordCancelBtn" class="btn btn-soft">取消</button></div></div></div><div id="cancelModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true"><div class="modal-card"><div id="cancelModalTitle" class="modal-title"></div><div class="modal-actions"><button id="cancelConfirmBtn" class="btn btn-pink">取消報名</button><button id="cancelBackBtn" class="btn btn-soft">再想想</button></div></div></div></main>
 <script>
-const SUPABASE_URL="https://gtwoqtclkyvujvoxfygq.supabase.co";
-const SUPABASE_KEY="sb_publishable_Bx610qU2vq2qSKY1c_1K7g_ewIxt4eu";
+const SUPABASE_URL='https://gtwoqtclkyvujvoxfygq.supabase.co';
+const SUPABASE_KEY='sb_publishable_Bx610qU2vq2qSKY1c_1K7g_ewIxt4eu';
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let events=[],regs=[],currentEvent=null,currentReg=null;
 const $=id=>document.getElementById(id);
-let currentEvent=null;
-let realtimeChannel=null;
-let refreshTimer=null;
-let lastLiveSnapshot="";
+function toast(t){const x=$('toast');x.textContent=t;x.style.display='block';clearTimeout(window.__toast);window.__toast=setTimeout(()=>x.style.display='none',2200)}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');document.documentElement.classList.remove('keyboard-open');if(id==='list')loadEvents();if(id==='records')loadRecords();window.scrollTo(0,0)}
+function fmtDate(d){const x=new Date(d+'T00:00:00');return {m:String(x.getMonth()+1).padStart(2,'0'),d:String(x.getDate()).padStart(2,'0'),w:['日','一','二','三','四','五','六'][x.getDay()]}}
+function time(t){return (t||'').slice(0,5)}
+async function loadEvents(){const {data,error}=await db.from('events').select('*').order('created_at',{ascending:false});if(error){toast('場次讀取失敗');return}events=data||[];if(events.length>4){const oldIds=events.slice(4).map(e=>e.id);const {error:deleteOldError}=await db.from('events').delete().in('id',oldIds);if(deleteOldError){console.error('cleanup old events:',deleteOldError);toast('舊場次清理失敗');return}events=events.slice(0,4)}const html=await Promise.all(events.map(async e=>{const {count}=await db.from('registrations').select('*',{count:'exact',head:true}).eq('event_id',e.id).eq('status','confirmed');const d=fmtDate(e.event_date);return `<article class="event-card"><div class="event-top"><div class="date"><b>${d.m}/${d.d}</b><span>週${d.w}</span></div><div class="event-main"><div class="event-title">${esc(e.title)}</div><div class="event-time">${time(e.start_time)}－${time(e.end_time)}</div></div></div><div class="event-actions"><button class="btn btn-soft" onclick="openRosterForEvent('${e.id}')">報名名單</button><button class="btn btn-green" onclick="openDetail('${e.id}')">查看/報名</button></div><div class="small">${count||0} / ${e.participant_limit||20} 人</div></article>`}));$('eventList').innerHTML=html.join('')||'<div class="empty">目前還沒有場次<br>建立第一場羽球活動吧！</div>'}
+function openDetail(id){currentEvent=events.find(e=>e.id===id);if(!currentEvent)return;renderDetail();show('detail')}
+async function openRosterForEvent(id){currentEvent=events.find(e=>e.id===id)||null;if(!currentEvent)return;await showRoster()}
+async function renderDetail(){const e=currentEvent;const {data}=await db.from('registrations').select('*').eq('event_id',e.id).order('registered_at',{ascending:true});regs=data||[];const d=fmtDate(e.event_date);const remembered=localStorage.getItem('badminton_name')||'';const mine=remembered?regs.find(r=>r.name===remembered):null;$('detailCard').innerHTML=`<div class="info-card signup-info-card"><div class="info-grid"><div class="info-date"><b>${d.m}/${d.d}</b><span>週${d.w}</span></div><div class="info-title">${esc(e.title)}</div><div class="info-line">${time(e.start_time)}－${time(e.end_time)}</div><div class="info-line">${esc(e.venue||'未填球館')} ・ ${e.courts||3} 面</div><div class="info-line">${e.notes?esc(e.notes):''}</div></div></div><div class="count detail-count"><strong>${regs.filter(r=>r.status==='confirmed').length}</strong> / ${e.participant_limit||20} 人</div><div class="action-grid"><button class="btn btn-green" onclick="openSignup('${e.id}','self')"><svg class="person-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"></circle><path d="M5.5 19.5c.7-3.4 3.2-5.5 6.5-5.5s5.8 2.1 6.5 5.5"></path></svg>＋1 報名</button><button class="btn btn-green" onclick="openSignup('${e.id}','friend')">幫朋友報名</button><button class="btn btn-pink" onclick="cancelMyRegistration()">取消報名</button><button class="btn btn-soft" onclick="showRoster()">報名名單</button></div>${remembered?`<div class="name-tools"><button type="button" onclick="changeMyName()">修改本人姓名</button></div>`:''}<details class="admin"><summary>🔒 團主管理</summary><div class="admin-body"><button class="btn btn-soft" onclick="editEvent()">編輯場次</button><button class="btn btn-soft" onclick="deleteEvent()">刪除場次</button></div></details></div>`}
+async function openSignup(id,mode='self'){currentEvent=events.find(e=>e.id===id)||currentEvent;if(!currentEvent)return;const remembered=localStorage.getItem('badminton_name')||'';const isSelf=mode==='self';if(isSelf&&remembered){const {data,error}=await db.from('registrations').select('*').eq('event_id',currentEvent.id).eq('name',remembered).limit(1);if(error)return toast('報名檢查失敗，請稍後再試');if(data&&data.length){return toast('你已經報名了！')}await registerName(remembered,'self');return}$('signupCard').innerHTML=`<div class="info-card signup-info-card"><div class="info-grid"><div class="info-date"><b>${fmtDate(currentEvent.event_date).m}/${fmtDate(currentEvent.event_date).d}</b><span>週${fmtDate(currentEvent.event_date).w}</span></div><div class="info-title">${esc(currentEvent.title)}</div><div class="info-line">${time(currentEvent.start_time)}－${time(currentEvent.end_time)}</div><div class="info-line">${esc(currentEvent.venue||'未填球館')} ・ ${currentEvent.courts||3} 面</div></div></div><div class="form-card"><div class="field"><label>${isSelf?'＋1 報名':'幫朋友報名'}</label><input id="signupName" value="" placeholder="請輸入姓名"></div>${isSelf?`<label class="remember"><input id="rememberName" type="checkbox"> <span>記住我的名字</span></label>`:''}<div class="small">${isSelf?'報名自己的名字。':'請輸入朋友的姓名。'}</div></div>`;$('signup').dataset.mode=mode;show('signup')}
+async function confirmSignup(){const mode=$('signup').dataset.mode||'self';const name=$('signupName').value.trim();if(!name)return toast('請先輸入姓名');if(mode==='self'){if($('rememberName')?.checked)localStorage.setItem('badminton_name',name);else localStorage.removeItem('badminton_name');}await registerName(name,mode)}
+async function registerName(name,mode){const {data:existing,error:checkError}=await db.from('registrations').select('id,status,name').eq('event_id',currentEvent.id).eq('name',name).limit(1);if(checkError)return toast('報名檢查失敗，請稍後再試');if(existing&&existing.length){if(mode==='self')await renderDetail();else toast('你已經報名囉！');return}const {count}=await db.from('registrations').select('*',{count:'exact',head:true}).eq('event_id',currentEvent.id).eq('status','confirmed');const status=(count||0)>=(currentEvent.participant_limit||20)?'waitlist':'confirmed';const {data,error}=await db.from('registrations').insert({event_id:currentEvent.id,name,status}).select().single();if(error){if(error.code==='23505'||/duplicate|unique/i.test(error.message||''))return toast('你已經報名囉！');return toast('報名失敗，請稍後再試')}if(mode==='self')setMine(currentEvent.id,data.id);currentReg=data;showSuccess(data,status==='waitlist')}
+function showSuccess(r,wait){const d=fmtDate(currentEvent.event_date);$('successDetail').innerHTML=`<div>${d.m}/${d.d}　${esc(currentEvent.title)}</div><div>${time(currentEvent.start_time)}－${time(currentEvent.end_time)}</div><div><span class="success-name">${esc(r.name)}</span> ${wait?'（候補中）':'已加入報名名單'}</div>`;show('success')}
+async function showRoster(){if(!currentEvent)return;const {data,error}=await db.from('registrations').select('*').eq('event_id',currentEvent.id).order('registered_at',{ascending:true});if(error)return toast('名單讀取失敗');regs=data||[];const confirmed=regs.filter(r=>r.status==='confirmed'),wait=regs.filter(r=>r.status==='waitlist');$('rosterCard').innerHTML=`<div class="roster-card"><div class="info-title">${esc(currentEvent.title)}</div><div class="small" style="margin:4px 0 12px">${fmtDate(currentEvent.event_date).m}/${fmtDate(currentEvent.event_date).d}　${time(currentEvent.start_time)}－${time(currentEvent.end_time)}</div><div class="count"><strong>${confirmed.length}</strong> / ${currentEvent.participant_limit||20} 人</div>${confirmed.map((r,i)=>personRow(r,i+1,'已報名')).join('')}${wait.length?`<div class="small" style="margin-top:14px">候補</div>${wait.map((r,i)=>personRow(r,i+1,'候補')).join('')}`:''}</div>`;show('roster')}
+function personRow(r,num,status){return `<div class="person"><span class="person-name">${num}. ${esc(r.name)}</span><span class="person-actions"><button class="trash-btn" title="取消報名" aria-label="取消${esc(r.name)}的報名" onclick="cancelRegistration('${r.id}')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8h10l-.7 11H7.7L7 8Zm2-4h6l1 2H8l1-2Zm-4 2h14v2H5V6Z" fill="currentColor"/><path d="M10 10h1v7h-1zm3 0h1v7h-1z" fill="#fff"/></svg></button><span class="badge ${status==='已報名'?'badge-confirmed':''}">${status}</span></span></div>`}
+function askCancel(name){return new Promise(resolve=>{const modal=$('cancelModal'),title=$('cancelModalTitle'),yes=$('cancelConfirmBtn'),no=$('cancelBackBtn');title.textContent=`確定要取消「${name}」的報名嗎？`;modal.classList.add('show');modal.setAttribute('aria-hidden','false');const close=value=>{modal.classList.remove('show');modal.setAttribute('aria-hidden','true');yes.onclick=null;no.onclick=null;resolve(value)};yes.onclick=()=>close(true);no.onclick=()=>close(false)} )}
+async function cancelRegistration(id){const r=regs.find(x=>x.id===id);if(!r)return;if(!(await askCancel(r.name)))return;const {error}=await db.from('registrations').delete().eq('id',id).eq('event_id',currentEvent.id);if(error)return toast('取消失敗：'+(error.message||'請稍後再試'));if(localStorage.getItem('badminton_reg_'+currentEvent.id)===id)localStorage.removeItem('badminton_reg_'+currentEvent.id);if(r.status==='confirmed'){const {data:wait}=await db.from('registrations').select('*').eq('event_id',currentEvent.id).eq('status','waitlist').order('registered_at',{ascending:true}).limit(1);if(wait&&wait[0])await db.from('registrations').update({status:'confirmed'}).eq('id',wait[0].id)}toast('已取消報名');await showRoster()}
+function getMine(id){const name=localStorage.getItem('badminton_name')||'';return regs.find(r=>r.event_id===id&&r.name===name)||null}function setMine(id,rid){localStorage.setItem('badminton_reg_'+id,rid)}
+async function changeMyName(){const oldName=localStorage.getItem('badminton_name')||'';const name=window.prompt(oldName?'請輸入新的本人姓名：':'請輸入本人姓名：',oldName);if(name===null)return;const next=name.trim();if(!next)return toast('請輸入姓名');if(next===oldName)return;localStorage.setItem('badminton_name',next);toast('本人姓名已更新');await renderDetail()}
+async function cancelMyRegistration(){if(!currentEvent)return;const remembered=localStorage.getItem('badminton_name')||'';if(!remembered)return toast('尚未記住你的名字');const {data:mineRows,error:findError}=await db.from('registrations').select('*').eq('event_id',currentEvent.id).eq('name',remembered).limit(1);if(findError)return toast('取消檢查失敗，請稍後再試');const mine=mineRows&&mineRows[0];if(!mine)return toast('你目前沒有報名這個場次');if(!(await askCancel(mine.name)))return;const {error}=await db.from('registrations').delete().eq('id',mine.id).eq('event_id',currentEvent.id);if(error){console.error(error);return toast('取消失敗：'+(error.message||'請稍後再試'))}localStorage.removeItem('badminton_reg_'+currentEvent.id);if(mine.status==='confirmed'){const {data:wait}=await db.from('registrations').select('*').eq('event_id',currentEvent.id).eq('status','waitlist').order('registered_at',{ascending:true}).limit(1);if(wait&&wait[0])await db.from('registrations').update({status:'confirmed'}).eq('id',wait[0].id)}toast('已取消報名');await renderDetail()}
+function requirePassword(action){return new Promise(resolve=>{const modal=$('passwordModal'),title=$('passwordModalTitle'),input=$('passwordInput'),yes=$('passwordConfirmBtn'),no=$('passwordCancelBtn');title.textContent=action+'請輸入密碼';input.value='';modal.classList.add('show');modal.setAttribute('aria-hidden','false');const close=value=>{modal.classList.remove('show');modal.setAttribute('aria-hidden','true');yes.onclick=null;no.onclick=null;input.onkeydown=null;resolve(value)};yes.onclick=()=>{const p=input.value;if(p!=='2418'){toast('密碼錯誤');input.value='';input.focus();return}close(true)};no.onclick=()=>close(false);input.onkeydown=e=>{if(e.key==='Enter')yes.click()};setTimeout(()=>{input.focus();input.select()},60)})}
+document.addEventListener('input',e=>{if(e.target.id==='passwordInput')e.target.value=e.target.value.replace(/\D/g,'').slice(0,4)});
+let formControlFocused=false;
+let keyboardSyncTimer=null;
+function setKeyboardOpen(open){document.documentElement.classList.toggle('keyboard-open',!!open)}
+function updateKeyboardState(){
+ const vv=window.visualViewport;
+ const active=document.activeElement;
+ const focused=!!(active&&active.matches&&active.matches('input,textarea,select'));
+ const keyboardLikely=vv ? ((window.innerHeight-vv.height)>100) : focused;
+ formControlFocused=focused;
+ setKeyboardOpen(keyboardLikely||focused);
+ if(!focused&&!keyboardLikely)setKeyboardOpen(false);
+}
+function scheduleKeyboardSync(){
+ clearTimeout(keyboardSyncTimer);
+ updateKeyboardState();
+ keyboardSyncTimer=setTimeout(()=>{updateKeyboardState();setTimeout(updateKeyboardState,120)},60);
+}
+if(window.visualViewport){
+ window.visualViewport.addEventListener('resize',scheduleKeyboardSync);
+ window.visualViewport.addEventListener('scroll',scheduleKeyboardSync);
+}
+document.addEventListener('focusin',e=>{
+ if(e.target.matches('input,textarea,select')){
+   formControlFocused=true;
+   setKeyboardOpen(true);
+   scheduleKeyboardSync();
+ }
+});
+document.addEventListener('focusout',()=>{
+ formControlFocused=false;
+ setKeyboardOpen(true);
+ setTimeout(scheduleKeyboardSync,120);
+ setTimeout(scheduleKeyboardSync,350);
+});
+window.addEventListener('resize',scheduleKeyboardSync);
 
-function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
-function fmtDate(s){const d=new Date(s+"T00:00:00");return `${d.getMonth()+1}/${d.getDate()}（${"日一二三四五六"[d.getDay()]}）`}
-function nameSaved(){return localStorage.getItem("badminton_name")||""}
-function myRegKey(eventId){return `badminton_reg_${eventId}`}
-function myRegId(eventId){return localStorage.getItem(myRegKey(eventId))||""}
-function setMyRegId(eventId,id){localStorage.setItem(myRegKey(eventId),id)}
-function clearMyRegId(eventId){localStorage.removeItem(myRegKey(eventId))}
-const ADMIN_PASSWORD="2418";
-function isAdmin(){return sessionStorage.getItem("badminton_admin")==="1"}
-function isRegAdmin(){return sessionStorage.getItem("badminton_reg_admin")==="1"}
-function requireAdmin(){
-  if(isAdmin()) return true;
-  openPasswordModal("admin");
-  return false;
-}
-function requireRegAdmin(){
-  if(isRegAdmin()) return true;
-  openPasswordModal("regAdmin");
-  return false;
-}
-function openPasswordModal(type){
-  const modal=$("passwordModal");
-  modal.classList.remove("hidden");
-  $("adminPasswordInput").value="";
-  modal.dataset.type=type;
-  setTimeout(()=>$("adminPasswordInput").focus(),50);
-}
-function closePasswordModal(){$("passwordModal").classList.add("hidden")}
-function submitPassword(){
-  const p=$("adminPasswordInput").value;
-  const type=$("passwordModal").dataset.type;
-  if(p===ADMIN_PASSWORD){
-    if(type==="regAdmin") sessionStorage.setItem("badminton_reg_admin","1");
-    else sessionStorage.setItem("badminton_admin","1");
-    closePasswordModal(); renderDetail(); return;
-  }
-  toast("密碼錯誤"); $("adminPasswordInput").select();
-}
-function toast(msg){alert(msg)}
-
-function setupRealtime(){
-  if(realtimeChannel){ db.removeChannel(realtimeChannel); realtimeChannel=null; }
-  realtimeChannel=db.channel("badminton-live")
-    .on("postgres_changes", {event:"*", schema:"public", table:"events"}, async (payload)=>{
-      if(currentEvent && payload.eventType==="DELETE" && payload.old?.id===currentEvent.id){
-        currentEvent=null;
-        showTab("list");
-        return;
-      }
-      if(currentEvent && payload.new?.id===currentEvent.id){
-        const {data:e}=await db.from("events").select("*").eq("id",currentEvent.id).maybeSingle();
-        if(e){ currentEvent=e; renderDetail(); }
-      }
-      if(!$('list').classList.contains('hidden')) loadEvents();
-    })
-    .on("postgres_changes", {event:"*", schema:"public", table:"registrations"}, async (payload)=>{
-      const eventId=payload.new?.event_id || payload.old?.event_id;
-      if(currentEvent && eventId===currentEvent.id) renderDetail();
-      if(!$('list').classList.contains('hidden')) loadEvents();
-    })
-    .subscribe((status)=>{
-      console.log("Realtime:",status);
-    });
-}
-
-async function getLiveSnapshot(){
-  if(currentEvent){
-    const {data:e}=await db.from("events").select("*").eq("id",currentEvent.id).maybeSingle();
-    if(!e) return "__DELETED__";
-    const {data:r}=await db.from("registrations").select("*").eq("event_id",currentEvent.id).order("registered_at",{ascending:true});
-    return JSON.stringify({e,r});
-  }
-  if(!$('list').classList.contains('hidden')){
-    const {data:e}=await db.from("events").select("*").order("event_date",{ascending:true}).order("start_time",{ascending:true});
-    return JSON.stringify(e||[]);
-  }
-  return "";
-}
-
-function startAutoRefresh(){
-  if(refreshTimer) clearInterval(refreshTimer);
-  refreshTimer=setInterval(async ()=>{
-    try{
-      const snap=await getLiveSnapshot();
-      if(!snap) return;
-      if(snap==="__DELETED__"){
-        currentEvent=null;
-        lastLiveSnapshot="";
-        showTab("list");
-        return;
-      }
-      if(snap===lastLiveSnapshot) return; // 沒有變化就不重繪，避免畫面一直閃動
-      lastLiveSnapshot=snap;
-      if(currentEvent){
-        const parsed=JSON.parse(snap);
-        currentEvent=parsed.e;
-        await renderDetail();
-      }else if(!$('list').classList.contains('hidden')){
-        await loadEvents();
-      }
-    }catch(e){ console.warn("auto refresh",e); }
-  },3000);
-}
-
-function showTab(which){
-  $("create").classList.toggle("hidden",which!=="create");
-  $("list").classList.toggle("hidden",which!=="list");
-  $("detail").classList.add("hidden");
-  $("newBtn").classList.toggle("on",which==="create");
-  $("listBtn").classList.toggle("on",which==="list");
-  if(which==="list") loadEvents();
-}
-
-async function loadEvents(){
-  $("list").classList.remove("hidden");
-  $("create").classList.add("hidden");
-  $("detail").classList.add("hidden");
-  $("list").innerHTML='<div class="card empty">載入場次中…</div>';
-  const {data,error}=await db.from("events").select("*").order("event_date",{ascending:true}).order("start_time",{ascending:true});
-  if(error){$("list").innerHTML='<div class="card empty">讀取失敗：請確認 Supabase 資料表設定。</div>';return}
-  if(!data.length){$("list").innerHTML='<div class="card empty">目前還沒有場次</div>';return}
-  const cards=[];
-  for(const e of data){
-    const {data:r}=await db.from("registrations").select("id,status").eq("event_id",e.id);
-    const confirmed=(r||[]).filter(x=>x.status==="confirmed").length;
-    cards.push(`<div class="event">
-      <div class="date">${fmtDate(e.event_date)}　${String(e.start_time).slice(0,5)}–${String(e.end_time).slice(0,5)}</div>
-      <div class="title">${esc(e.title)}</div>
-      <div class="muted">${esc(e.venue||"未填場地")}　｜　${e.courts} 面場</div>
-      <div class="muted">目前 ${confirmed} / ${e.participant_limit} 人</div>${e.notes?`<div class="noteBlock"><div class="note">📝 ${esc(e.notes)}</div></div>`:""}
-      <button onclick="openEvent('${e.id}')">查看／報名</button>
-    </div>`);
-  }
-  $("list").innerHTML=cards.join("");
-}
-
+async function openCreate(){if(await requirePassword('建立場次：'))show('create')}
+document.addEventListener('click',async e=>{const summary=e.target.closest('.admin summary');if(!summary)return;e.preventDefault();if(await requirePassword('團主管理：'))summary.parentElement.open=!summary.parentElement.open});
 async function createEvent(){
-  const date=$("date").value,start=$("start").value,end=$("end").value,title=$("title").value.trim();
-  if(!date||!start||!end||!title){toast("請填日期、時間和場次名稱");return}
-  if(start>=end){toast("結束時間要晚於開始時間");return}
-  const payload={
-    title,event_date:date,start_time:start,end_time:end,
-    venue:$("venue").value.trim(),courts:Number($("courts").value)||1,
-    participant_limit:Number($("limit").value)||20,notes:$("note").value.trim()
-  };
-  $("createBtn").disabled=true;
-  const {data,error}=await db.from("events").insert(payload).select().single();
-  $("createBtn").disabled=false;
-  if(error){toast("建立失敗："+error.message);return}
-  openEvent(data.id);
+ const btn=$('createSubmit');
+ if(btn.disabled)return;
+ const title=$('fTitle').value.trim();
+ const date=$('fDate').value;
+ const start=$('fStart').value;
+ const end=$('fEnd').value;
+ if(!title||!date||!start||!end){return toast('請填寫活動名稱、日期與時間')}
+ if(end<=start){return toast('結束時間要晚於開始時間')}
+ const payload={title,event_date:date,start_time:start,end_time:end,venue:$('fVenue').value.trim(),courts:Math.max(1,Number($('fCourts').value)||3),participant_limit:Math.max(1,Number($('fLimit').value)||20),notes:$('fNotes').value.trim(),created_at:new Date().toISOString()};
+ btn.disabled=true;btn.textContent='建立中…';
+ try{
+   const {error}=await db.from('events').insert(payload);
+   if(error){console.error('createEvent:',error);toast('建立失敗：'+(error.message||'請檢查 Supabase 權限'));return}
+   const {data:allEvents,error:orderError}=await db.from('events').select('id,created_at').order('created_at',{ascending:false});
+   if(orderError){console.error('enforce event limit:',orderError);toast('場次已建立，但排序資料讀取失敗');return}
+   const oldIds=(allEvents||[]).slice(4).map(e=>e.id);
+   if(oldIds.length){
+     const {error:deleteOldError}=await db.from('events').delete().in('id',oldIds);
+     if(deleteOldError){console.error('delete oldest events:',deleteOldError);toast('場次已建立，但舊場次刪除失敗');return}
+   }
+   $('fTitle').value='';$('fDate').value='';$('fStart').value='';$('fEnd').value='';$('fVenue').value='';$('fCourts').value='3';$('fLimit').value='20';$('fNotes').value='';
+   toast('場次已建立');
+   await loadEvents();
+   show('list');
+ }catch(err){
+   console.error('createEvent exception:',err);
+   toast('建立失敗：'+(err?.message||'網路連線或 Supabase 發生問題'));
+ }finally{
+   btn.disabled=false;btn.textContent='建立場次';
+ }
 }
-
-async function openEvent(id){
-  const {data:e,error}=await db.from("events").select("*").eq("id",id).single();
-  if(error){toast("找不到場次");return}
-  currentEvent=e;
-  $("create").classList.add("hidden");
-  $("list").classList.add("hidden");
-  $("detail").classList.remove("hidden");
-  renderDetail();
-}
-
-async function renderDetail(){
-  const e=currentEvent;
-  const {data:regs,error}=await db.from("registrations").select("*").eq("event_id",e.id).order("registered_at",{ascending:true});
-  if(error){toast("讀取名單失敗");return}
-  const confirmed=(regs||[]).filter(r=>r.status==="confirmed");
-  const wait=(regs||[]).filter(r=>r.status==="waitlist");
-  const me=nameSaved();
-  const mineId=myRegId(e.id);
-  const my=(regs||[]).find(r=>r.id===mineId) || ((regs||[]).find(r=>r.name===me) || null);
-
-  $("detail").innerHTML=`
-    <div class="card">
-      <button class="action backToList" style="margin-top:0" onclick="showTab('list')">← 回到場次</button>
-      <div class="eventSummary">
-        <div class="summaryTitle">${esc(e.title)}</div>
-        <div class="summaryDate">${fmtDate(e.event_date)}</div>
-        <div class="summaryTime">${String(e.start_time).slice(0,5)}–${String(e.end_time).slice(0,5)}</div>
-      </div>
-      <div class="venueSummary">
-        <span>${esc(e.venue||"未填場地")}</span>
-        <span class="summaryDivider">｜</span>
-        <span>${e.courts} 面場</span>
-      </div>
-      ${e.notes?`<div class="noteBlock"><div class="note">📝 ${esc(e.notes)}</div></div>`:""}
-      <div style="margin-top:15px"><span class="count"><b>${confirmed.length}</b> / ${e.participant_limit} 人</span></div>
-      ${my?`<div class="note">你目前${my.status==="confirmed"?"已報名":"在候補名單"}。</div>
-      <button class="cancel" onclick="cancelReg('${my.id}')">取消我的報名</button>
-      <button class="friendJoin" style="margin-top:10px" onclick="joinForOther()">👥 幫朋友報名</button>`
-      :`<div class="joinRow"><button class="join" onclick="join()">＋1 報名</button><button class="friendJoin" onclick="joinForOther()">👥 幫朋友報名</button></div>`}
-      <div class="adminBlock">
-        <div class="adminHead">🔐 團主管理 <span class="lockBadge">需密碼</span></div>
-        <div class="adminRow">
-          <button class="adminBtn" onclick="if(requireAdmin())showEditForm()">✏️ 編輯場次</button>
-          <button class="adminBtn" style="color:#b44" onclick="if(requireAdmin())deleteEvent()">🗑️ 刪除場次</button>
-        </div>
-      </div>
-      <button class="action" style="margin-top:8px;background:#fff5d9;color:#856b1f" onclick="requireRegAdmin()">✏️ 修改｜團主專用</button>
-    </div>
-    <div id="editArea" class="card hidden"></div>
-    <div class="card">
-      <h3 style="margin-top:0">已報名 ${confirmed.length} 人</h3>
-      ${confirmed.length?`<ol class="names">${confirmed.map((r,i)=>`<li>${esc(r.name)} ${isRegAdmin()?`<button class="miniBtn" onclick="editReg('${r.id}')">📝 修改</button><button class="miniBtn dangerMini" onclick="adminDeleteReg('${r.id}')">🗑️ 刪除</button>`:r.id===mineId?`<button class="miniBtn" onclick="editMyReg('${r.id}')">📝 修改</button><button class="miniBtn dangerMini" onclick="cancelReg('${r.id}')">🗑️ 取消</button>`:""}</li>`).join("")}</ol>`:`<div class="empty">目前還沒有人報名</div>`}
-      ${wait.length?`<div class="wait" style="font-size:18px;line-height:2.1">候補 ${wait.length} 人<br>${wait.map((r,i)=>`${i+1}. ${esc(r.name)} ${isRegAdmin()?`<button class="miniBtn" onclick="editReg('${r.id}')">📝 修改</button><button class="miniBtn dangerMini" onclick="adminDeleteReg('${r.id}')">🗑️ 刪除</button>`:r.id===mineId?`<button class="miniBtn" onclick="editMyReg('${r.id}')">📝 修改</button><button class="miniBtn dangerMini" onclick="cancelReg('${r.id}')">🗑️ 取消</button>`:""}`).join("<br>")}</div>`:""}
-    </div>`;
-}
-
-function showEditForm(){
-  const e=currentEvent;
-  $("editArea").classList.remove("hidden");
-  $("editArea").innerHTML=`
-    <h2>✏️ 編輯場次</h2>
-    <label>日期</label><input id="editDate" type="date" value="${e.event_date}">
-    <div class="grid">
-      <div><label>開始時間</label><input id="editStart" type="time" value="${String(e.start_time).slice(0,5)}"></div>
-      <div><label>結束時間</label><input id="editEnd" type="time" value="${String(e.end_time).slice(0,5)}"></div>
-    </div>
-    <label>場次名稱</label><input id="editTitle" value="${esc(e.title)}">
-    <label>球館</label><input id="editVenue" value="${esc(e.venue||"")}">
-    <div class="grid">
-      <div><label>場地數</label><input id="editCourts" type="number" min="1" value="${e.courts||1}"></div>
-      <div><label>人數上限</label><input id="editLimit" type="number" min="1" value="${e.participant_limit||20}"></div>
-    </div>
-    <label>備註（選填）</label><textarea id="editNote" rows="3">${esc(e.notes||"")}</textarea>
-    <button class="action green" onclick="saveEdit()">💾 儲存修改</button>
-    <button class="action blue" onclick="$('editArea').classList.add('hidden')">取消編輯</button>`;
-}
-
-async function saveEdit(){
-  if(!requireAdmin())return;
-  const date=$("editDate").value,start=$("editStart").value,end=$("editEnd").value,title=$("editTitle").value.trim();
-  if(!date||!start||!end||!title){toast("請填日期、時間和場次名稱");return}
-  if(start>=end){toast("結束時間要晚於開始時間");return}
-  const payload={
-    title,event_date:date,start_time:start,end_time:end,
-    venue:$("editVenue").value.trim(),courts:Number($("editCourts").value)||1,
-    participant_limit:Number($("editLimit").value)||20,notes:$("editNote").value.trim()
-  };
-  const {data,error}=await db.from("events").update(payload).eq("id",currentEvent.id).select().single();
-  if(error){toast("修改失敗："+error.message);return}
-  currentEvent=data;
-  toast("場次已修改");
-  renderDetail();
-}
-
-async function joinForOther(){
-  let name=prompt("請輸入要幫忙報名的球友姓名");
-  if(!name||!name.trim())return;
-  name=name.trim();
-  const {data:old}=await db.from("registrations").select("*").eq("event_id",currentEvent.id).eq("name",name).maybeSingle();
-  if(old){toast(`${name} 已經報名過了`);return}
-  const {data:all}=await db.from("registrations").select("status").eq("event_id",currentEvent.id);
-  const confirmed=(all||[]).filter(r=>r.status==="confirmed").length;
-  const status=confirmed<currentEvent.participant_limit?"confirmed":"waitlist";
-  const {error}=await db.from("registrations").insert({event_id:currentEvent.id,name,status});
-  if(error){toast("代報名失敗："+error.message);return}
-  toast(status==="confirmed"?`${name} 報名成功！`:`已額滿，${name} 已加入候補`);
-  renderDetail();
-}
-
-async function deleteEvent(){
-  if(!requireAdmin())return;
-  const ok=confirm(`確定要刪除「${currentEvent.title}」這個場次嗎？\n\n刪除後，這個場次及所有報名資料都會一起刪除，無法復原。`);
-  if(!ok)return;
-  const {error}=await db.from("events").delete().eq("id",currentEvent.id);
-  if(error){toast("刪除失敗："+error.message);return}
-  toast("場次已刪除");
-  currentEvent=null;
-  showTab("list");
-  loadEvents();
-}
-
-async function join(){
-  let name=nameSaved();
-  if(!name) name=prompt("第一次報名，請輸入你的姓名");
-  if(!name||!name.trim())return;
-  name=name.trim();
-  localStorage.setItem("badminton_name",name);
-
-  const {data:old}=await db.from("registrations").select("*").eq("event_id",currentEvent.id).eq("name",name).maybeSingle();
-  if(old){toast("你已經報名過了");return}
-
-  const {data:all}=await db.from("registrations").select("status").eq("event_id",currentEvent.id);
-  const confirmed=(all||[]).filter(r=>r.status==="confirmed").length;
-  const status=confirmed<currentEvent.participant_limit?"confirmed":"waitlist";
-
-  const {data:newReg,error}=await db.from("registrations").insert({event_id:currentEvent.id,name,status}).select("id").single();
-  if(error){toast("報名失敗："+error.message);return}
-  setMyRegId(currentEvent.id,newReg.id);
-  toast(status==="confirmed"?"報名成功！":"已額滿，已加入候補");
-  renderDetail();
-}
-
-async function editMyReg(id){
-  const mineId=myRegId(currentEvent.id);
-  if(id!==mineId){toast("只能修改自己的報名");return}
-  await editReg(id,false);
-}
-
-async function editReg(id,admin=true){
-  if(admin && !requireRegAdmin())return;
-  const {data:reg,error}=await db.from("registrations").select("*").eq("id",id).single();
-  if(error||!reg){toast("找不到這筆報名");return}
-  let name=prompt("請輸入新的姓名：",reg.name);
-  if(name===null)return;
-  name=name.trim();
-  if(!name){toast("姓名不能空白");return}
-  if(name===reg.name)return;
-  const {data:dup}=await db.from("registrations").select("id").eq("event_id",currentEvent.id).eq("name",name).neq("id",id).maybeSingle();
-  if(dup){toast(`${name} 已經報名過了`);return}
-  const {error:upErr}=await db.from("registrations").update({name}).eq("id",id);
-  if(upErr){toast("修改失敗："+upErr.message);return}
-  if(id===myRegId(currentEvent.id)) localStorage.setItem("badminton_name",name);
-  toast("姓名已修改");
-  renderDetail();
-}
-
-async function adminDeleteReg(id){
-  if(!requireRegAdmin())return;
-  if(!confirm("確定要刪除這筆報名嗎？"))return;
-  await cancelReg(id,true);
-}
-
-async function cancelReg(id,fromAdmin=false){
-  if(fromAdmin && !requireRegAdmin())return;
-  if(!fromAdmin && id!==myRegId(currentEvent.id)){toast("只能取消自己的報名");return}
-  if(!fromAdmin && !confirm("確定要取消報名嗎？"))return;
-  const {error}=await db.from("registrations").delete().eq("id",id);
-  if(error){toast("取消失敗："+error.message);return}
-  if(id===myRegId(currentEvent.id)) clearMyRegId(currentEvent.id);
-
-  // 取消正取後，依報名順序把第一位候補遞補成正取。
-  const {data:wait}=await db.from("registrations").select("*").eq("event_id",currentEvent.id).eq("status","waitlist").order("registered_at",{ascending:true}).limit(1);
-  if(wait&&wait[0]) await db.from("registrations").update({status:"confirmed"}).eq("id",wait[0].id);
-
-  toast("已取消報名");
-  renderDetail();
-}
-
-async function copyLink(){
-  const url=location.href.split("#")[0]+"#event="+currentEvent.id;
-  try{await navigator.clipboard.writeText(url);toast("連結已複製，可以貼到 LINE 群");}
-  catch(e){prompt("請複製連結：",url)}
-}
-
-$("newBtn").onclick=()=>{if(requireAdmin())showTab("create")};
-$("listBtn").onclick=()=>showTab("list");
-$("createBtn").onclick=()=>{if(requireAdmin())createEvent()};
-
-function init(){
-  $("date").value=new Date().toISOString().slice(0,10);
-  const id=location.hash.startsWith("#event=")?location.hash.slice(7):"";
-  if(id) openEvent(id); else showTab("list");
-}
-init();
-setupRealtime();
-startAutoRefresh();
-</script>
-</body>
-</html>
-<style>
-/* 團主管理：更緊湊、超淡粉色 */
-.adminBlock{
-  background:#fff7f8 !important;
-  padding:7px 10px !important;
-  margin-top:8px !important;
-  border-radius:12px !important;
-}
-.adminHead{
-  font-size:16px !important;
-  margin-bottom:4px !important;
-}
-.adminBlock .adminRow{gap:4px !important;}
-.adminBlock .adminBtn{
-  font-size:15px !important;
-  padding:7px 7px !important;
-}
-.adminBlock > .adminBtn{
-  margin-top:4px !important;
-  padding:7px 7px !important;
-}
-</style>
-<style>
-/* 最新配色：回到場次超淡粉、團主管理淡黃、備註超淡黃 */
-.backToList{
-  background:#fff7f9 !important;
-  color:#9a6873 !important;
-}
-.adminBlock{
-  background:#fff8e8 !important;
-}
-.noteBlock{
-  background:#fffdf0 !important;
-}
-</style>
-<style>
-/* 最後微調：時間縮小、備註改淡藍 */
-.summaryTime{
-  font-size:22px !important;
-  font-weight:400 !important;
-}
-.noteBlock{
-  background:#f4fbff !important;
-}
-</style>
-<style>
-/* 備註與場次／日期／時間使用完全相同的淡藍色 */
-.noteBlock{background:#eef8ff !important;}
-</style>
+async function deleteEvent(){if(!currentEvent)return;if(!confirm('確定刪除這個場次嗎？'))return;const {error}=await db.from('events').delete().eq('id',currentEvent.id);if(error)return toast('刪除失敗');currentEvent=null;show('list')}
+async function editEvent(){if(!currentEvent)return;const e=currentEvent;const card=$('detailCard');card.innerHTML=`<div class="form-card"><div class="field"><label>活動名稱</label><input id="eTitle" value="${esc(e.title)}"></div><div class="two"><div class="field"><label>日期</label><input id="eDate" type="date" value="${e.event_date}"></div><div class="field"><label>開始</label><input id="eStart" type="time" value="${time(e.start_time)}"></div></div><div class="field"><label>結束</label><input id="eEnd" type="time" value="${time(e.end_time)}"></div><div class="field"><label>球館</label><input id="eVenue" value="${esc(e.venue||'')}"></div><div class="two"><div class="field"><label>場地數</label><input id="eCourts" type="number" value="${e.courts||3}"></div><div class="field"><label>人數上限</label><input id="eLimit" type="number" value="${e.participant_limit||20}"></div></div><div class="field"><label>備註</label><textarea id="eNotes" rows="3">${esc(e.notes||'')}</textarea></div><button class="btn btn-primary btn-full" onclick="saveEvent()">儲存修改</button></div>`}
+async function saveEvent(){const {data,error}=await db.from('events').update({title:$('eTitle').value.trim(),event_date:$('eDate').value,start_time:$('eStart').value,end_time:$('eEnd').value,venue:$('eVenue').value.trim(),courts:+$('eCourts').value||3,participant_limit:+$('eLimit').value||20,notes:$('eNotes').value.trim()}).eq('id',currentEvent.id).select().single();if(error)return toast('修改失敗');currentEvent=data;toast('已儲存');renderDetail()}
+async function loadRecords(){const name=localStorage.getItem('badminton_name');if(!name){$('recordsList').innerHTML='<div class="empty">尚無紀錄</div>';return}const {data}=await db.from('registrations').select('*,events(*)').eq('name',name).order('registered_at',{ascending:false});const rows=data||[];$('recordsList').innerHTML=rows.map(r=>`<div class="record"><div class="rdate">${r.events?.event_date||''}</div><div class="rtitle">${esc(r.events?.title||'')}</div><div class="rtime">${time(r.events?.start_time)}－${time(r.events?.end_time)}　${r.status==='waitlist'?'候補':'已報名'}</div></div>`).join('')||'<div class="empty">尚無紀錄</div>'}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+$('createSubmit').addEventListener('click',createEvent);
+loadEvents();setInterval(()=>{if(document.querySelector('#list.active'))loadEvents()},5000);
+</script></body></html>
