@@ -53,7 +53,7 @@ async function loadEvents(){const {data,error}=await db.from('events').select('*
 function openDetail(id){currentEvent=events.find(e=>e.id===id);if(!currentEvent)return;renderDetail();show('detail')}
 async function openRosterForEvent(id){currentEvent=events.find(e=>e.id===id)||null;if(!currentEvent)return;await showRoster()}
 async function renderDetail(){const e=currentEvent;const {data}=await db.from('registrations').select('*').eq('event_id',e.id).order('registered_at',{ascending:true});regs=data||[];const d=fmtDate(e.event_date);const remembered=localStorage.getItem('badminton_name')||'';const mine=remembered?regs.find(r=>r.name===remembered):null;$('detailCard').innerHTML=`<div class="info-card signup-info-card"><div class="info-grid"><div class="info-date"><b>${d.m}/${d.d}</b><span>週${d.w}</span></div><div class="info-title">${esc(e.title)}</div><div class="info-line">${time(e.start_time)}－${time(e.end_time)}</div><div class="info-line">${esc(e.venue||'未填球館')} ・ ${e.courts||3} 面</div><div class="info-line">${e.notes?esc(e.notes):''}</div></div></div><div class="count detail-count"><strong>${regs.filter(r=>r.status==='confirmed').length}</strong> / ${e.participant_limit||21} 人</div><div class="action-grid"><button class="btn btn-green" onclick="openSignup('${e.id}','self')"><svg class="person-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"></circle><path d="M5.5 19.5c.7-3.4 3.2-5.5 6.5-5.5s5.8 2.1 6.5 5.5"></path></svg>＋1 報名</button><button class="btn btn-green" onclick="openSignup('${e.id}','friend')">幫朋友報名</button><button class="btn btn-pink" onclick="cancelMyRegistration()">取消報名</button><button class="btn btn-soft" onclick="showRoster()">報名名單</button></div>${remembered?`<div class="name-tools"><button type="button" onclick="changeMyName()">修改本人姓名</button></div>`:''}<details class="admin"><summary>🔒 團主管理</summary><div class="admin-body"><button class="btn btn-soft" onclick="editEvent()">編輯場次</button><button class="btn btn-soft" onclick="deleteEvent()">刪除場次</button></div></details></div>`}
-async function openSignup(id,mode='self'){currentEvent=events.find(e=>e.id===id)||currentEvent;if(!currentEvent)return;const remembered=localStorage.getItem('badminton_name')||'';const isSelf=mode==='self';if(isSelf&&remembered){const {data,error}=await db.from('registrations').select('*').eq('event_id',currentEvent.id).eq('name',remembered).limit(1);if(error)return toast('報名檢查失敗，請稍後再試');if(data&&data.length){return toast('你已經報名了！')}await registerName(remembered,'self');return}$('signupCard').innerHTML=`<div class="info-card signup-info-card"><div class="info-grid"><div class="info-date"><b>${fmtDate(currentEvent.event_date).m}/${fmtDate(currentEvent.event_date).d}</b><span>週${fmtDate(currentEvent.event_date).w}</span></div><div class="info-title">${esc(currentEvent.title)}</div><div class="info-line">${time(currentEvent.start_time)}－${time(currentEvent.end_time)}</div><div class="info-line">${esc(currentEvent.venue||'未填球館')} ・ ${currentEvent.courts||3} 面</div></div></div><div class="form-card"><div class="field"><label>${isSelf?'＋1 報名':'幫朋友報名'}</label><input id="signupName" value="" placeholder="請輸入姓名"></div>${isSelf?`<label class="remember"><input id="rememberName" type="checkbox"> <span>記住我的名字</span></label>`:''}<div class="small">${isSelf?'報名自己的名字。':'請輸入朋友的姓名。'}</div></div>`;$('signup').dataset.mode=mode;show('signup')}
+async function openSignup(id,mode='self'){currentEvent=events.find(e=>e.id===id)||currentEvent;if(!currentEvent)return;const remembered=localStorage.getItem('badminton_name')||'';const isSelf=mode==='self';if(isSelf&&remembered){const {data,error}=await db.from('registrations').select('*').eq('event_id',currentEvent.id).eq('name',remembered).limit(1);if(error)return toast('報名檢查失敗，請稍後再試');if(data&&data.length){return toast('你已經報名了！')}await registerName(remembered,'self');return}$('signupCard').innerHTML=`<div class="info-card signup-info-card"><div class="info-grid"><div class="info-date"><b>${fmtDate(currentEvent.event_date).m}/${fmtDate(currentEvent.event_date).d}</b><span>週${fmtDate(currentEvent.event_date).w}</span></div><div class="info-title">${esc(currentEvent.title)}</div><div class="info-line">${time(currentEvent.start_time)}－${time(currentEvent.end_time)}</div><div class="info-line">${esc(currentEvent.venue||'未填球館')} ・ ${currentEvent.courts||3} 面</div></div></div><div class="form-card"><div class="field"><label>${isSelf?'＋1 報名':'幫朋友報名'}</label><input id="signupName" value="" placeholder="請輸入姓名"></div>${isSelf?`<label class="remember"><input id="rememberName" type="checkbox"> <span>記住我的名字</span></label>`:''}<div class="small">${isSelf?'報名自己的名字。':'請輸入朋友的姓名。'}</div></div>`;$('signup').dataset.mode=mode;signupViewportBase=signupViewportHeight();formControlFocused=false;show('signup');setKeyboardOpen(false)}
 async function confirmSignup(){const mode=$('signup').dataset.mode||'self';const name=$('signupName').value.trim();if(!name)return toast('請先輸入姓名');if(mode==='self'){if($('rememberName')?.checked)localStorage.setItem('badminton_name',name);else localStorage.removeItem('badminton_name');}await registerName(name,mode)}
 async function registerName(name,mode){const {data:existing,error:checkError}=await db.from('registrations').select('id,status,name').eq('event_id',currentEvent.id).eq('name',name).limit(1);if(checkError)return toast('報名檢查失敗，請稍後再試');if(existing&&existing.length){if(mode==='self')await renderDetail();else toast('你已經報名囉！');return}const {count}=await db.from('registrations').select('*',{count:'exact',head:true}).eq('event_id',currentEvent.id).eq('status','confirmed');const status=(count||0)>=(currentEvent.participant_limit||21)?'waitlist':'confirmed';const {data,error}=await db.from('registrations').insert({event_id:currentEvent.id,name,status}).select().single();if(error){if(error.code==='23505'||/duplicate|unique/i.test(error.message||''))return toast('你已經報名囉！');return toast('報名失敗，請稍後再試')}if(mode==='self')setMine(currentEvent.id,data.id);currentReg=data;showSuccess(data,status==='waitlist')}
 function showSuccess(r,wait){const d=fmtDate(currentEvent.event_date);$('successDetail').innerHTML=`<div>${d.m}/${d.d}　${esc(currentEvent.title)}</div><div>${time(currentEvent.start_time)}－${time(currentEvent.end_time)}</div><div><span class="success-name">${esc(r.name)}</span> ${wait?'（候補中）':'已加入報名名單'}</div>`;show('success')}
@@ -69,49 +69,50 @@ function requirePassword(action){return new Promise(resolve=>{const modal=$('pas
 document.addEventListener('input',e=>{if(e.target.id==='passwordInput')e.target.value=e.target.value.replace(/\D/g,'').slice(0,4)});
 let formControlFocused=false;
 let keyboardSyncTimer=null;
+let signupViewportBase=null;
 function setKeyboardOpen(open){const signup=$('signup');if(signup)signup.classList.toggle('keyboard-open',!!open)}
-function updateKeyboardState(){
- const vv=window.visualViewport;
+function signupViewportHeight(){return window.visualViewport?window.visualViewport.height:window.innerHeight}
+function updateSignupKeyboardState(){
+ const signup=$('signup');
+ if(!signup||!signup.classList.contains('active'))return;
+ const h=signupViewportHeight();
  const active=document.activeElement;
  const focused=!!(active&&active.matches&&active.matches('input,textarea,select'));
- if(vv){
-   const delta=window.innerHeight-vv.height;
-   // visualViewport is the source of truth once it reports a keyboard-sized shrink.
-   // When the viewport returns to normal height, show the buttons immediately,
-   // even if the input is still focused during the keyboard-close animation.
-   setKeyboardOpen(delta>100);
+ if(signupViewportBase==null)signupViewportBase=h;
+ if(focused){
+   // On Android, window.innerHeight can shrink together with visualViewport.
+   // Compare against the baseline captured when the signup screen opened.
+   setKeyboardOpen(formControlFocused && h < signupViewportBase-80 ? true : formControlFocused);
  }else{
-   setKeyboardOpen(focused);
+   setKeyboardOpen(false);
  }
- formControlFocused=focused;
 }
-function scheduleKeyboardSync(delay=0){
- clearTimeout(keyboardSyncTimer);
- keyboardSyncTimer=setTimeout(updateKeyboardState,delay);
-}
-if(window.visualViewport){
- window.visualViewport.addEventListener('resize',updateKeyboardState);
- window.visualViewport.addEventListener('scroll',updateKeyboardState);
-}
+function scheduleSignupKeyboardSync(delay=0){clearTimeout(keyboardSyncTimer);keyboardSyncTimer=setTimeout(updateSignupKeyboardState,delay)}
 document.addEventListener('focusin',e=>{
- if(e.target.matches('input,textarea,select')){
+ if(e.target.matches('input,textarea,select')&&$('signup')?.classList.contains('active')){
    formControlFocused=true;
-   // Hide immediately when an input receives focus; wait for the viewport
-   // resize event to decide when the keyboard is actually open.
    setKeyboardOpen(true);
-   scheduleKeyboardSync(350);
+   scheduleSignupKeyboardSync(350);
  }
 });
-document.addEventListener('focusout',()=>{
- formControlFocused=false;
- // Re-check through the keyboard-close animation. As soon as the viewport
- // returns to normal height, the fixed buttons are shown without a blank-area tap.
- scheduleKeyboardSync(0);
- setTimeout(updateKeyboardState,80);
- setTimeout(updateKeyboardState,180);
- setTimeout(updateKeyboardState,350);
+document.addEventListener('focusout',e=>{
+ if(e.target.matches('input,textarea,select')&&$('signup')?.classList.contains('active')){
+   formControlFocused=false;
+   setKeyboardOpen(false);
+   scheduleSignupKeyboardSync(0);
+ }
 });
-window.addEventListener('resize',updateKeyboardState);
+if(window.visualViewport){
+ window.visualViewport.addEventListener('resize',()=>{
+   if(!$('signup')?.classList.contains('active'))return;
+   const h=window.visualViewport.height;
+   if(signupViewportBase==null)signupViewportBase=h;
+   if(h>=signupViewportBase-40){setKeyboardOpen(false)}
+   else if(formControlFocused){setKeyboardOpen(true)}
+ });
+ window.visualViewport.addEventListener('scroll',updateSignupKeyboardState);
+}
+window.addEventListener('resize',()=>{if($('signup')?.classList.contains('active'))scheduleSignupKeyboardSync(0)});
 
 async function openCreate(){if(await requirePassword('建立場次：'))show('create')}
 document.addEventListener('click',async e=>{const summary=e.target.closest('.admin summary');if(!summary)return;e.preventDefault();if(await requirePassword('團主管理：'))summary.parentElement.open=!summary.parentElement.open});
